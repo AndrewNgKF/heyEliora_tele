@@ -1,0 +1,22 @@
+{
+  "name": "heyeliora_tele",
+  "version": "1.0.0",
+  "description": "Your personal AI assistant in Telegram",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.js",
+    "start": "bun src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.69",
+    "@libsql/client": "^0.17.2",
+    "ai": "^6.0.161",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "grammy": "^1.42.0"
+  }
+}

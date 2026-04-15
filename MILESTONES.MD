@@ -5,7 +5,7 @@
 Get a working Telegram bot that can have a basic conversation via LLM.
 
 - [ ] Init project (Bun + JavaScript + JSDoc + project structure)
-- [ ] Set up grammY bot with webhook via Hono
+- [ ] Set up grammY bot with webhook
 - [ ] Bot responds to `/start` with a welcome message
 - [ ] Connect Vercel AI SDK + Claude
 - [ ] Bot forwards user messages to Claude and returns the response

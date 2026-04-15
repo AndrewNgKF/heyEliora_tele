@@ -2,15 +2,15 @@
 
 ## Core
 
-| Layer               | Choice                     | Why                                                                                                    |
-| ------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Runtime**         | Bun                        | Fast, built-in test runner, good DX. Runs JS natively, no build step                                   |
-| **Language**        | JavaScript + JSDoc         | No TS build tooling. JSDoc gives editor type hints where useful without a compile step                 |
-| **Framework**       | Hono (on Bun)              | Lightweight, faster than Express, works natively with Bun. Express works but Hono is a better fit here |
-| **Telegram Bot**    | grammY                     | Best JS/TS bot framework — middleware system, session handling, good plugin ecosystem                  |
-| **LLM**             | Claude (via Anthropic API) | Best at following nuanced instructions and style matching. Swap-friendly via Vercel AI SDK             |
-| **LLM Abstraction** | Vercel AI SDK              | Standardized interface — swap Claude for OpenAI/Gemini/local models without rewriting logic            |
-| **Database**        | Turso (libSQL)             | SQLite-based, edge-ready, embedded vector search via `sqlite-vec`. One DB for relational + vector      |
+| Layer               | Choice                     | Why                                                                                                          |
+| ------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Runtime**         | Bun                        | Fast, built-in test runner, good DX. Runs JS natively, no build step                                         |
+| **Language**        | JavaScript + JSDoc         | No TS build tooling. JSDoc gives editor type hints where useful without a compile step                       |
+| **Framework**       | Express                    | Familiar, stable, massive ecosystem. HTTP layer is minimal here (just webhook), no need for anything fancier |
+| **Telegram Bot**    | grammY                     | Best JS/TS bot framework — middleware system, session handling, good plugin ecosystem                        |
+| **LLM**             | Claude (via Anthropic API) | Best at following nuanced instructions and style matching. Swap-friendly via Vercel AI SDK                   |
+| **LLM Abstraction** | Vercel AI SDK              | Standardized interface — swap Claude for OpenAI/Gemini/local models without rewriting logic                  |
+| **Database**        | Turso (libSQL)             | SQLite-based, edge-ready, embedded vector search via `sqlite-vec`. One DB for relational + vector            |
 
 ## RAG & Memory
 
