@@ -1,4 +1,5 @@
 import { db } from "./index.js";
+import { generateId } from "../utils/id.js";
 
 /**
  * Ensure a user exists, create if not
@@ -63,31 +64,39 @@ export async function clearHistory(telegramId) {
  * Add a goal for a user
  * @param {string} telegramId
  * @param {string} goal
+ * @param {string} [baseline]
+ * @param {string} [target]
  */
-export async function addGoal(telegramId, goal) {
+export async function addGoal(telegramId, goal, baseline, target) {
+  const id = generateId();
   await db.execute({
-    sql: "INSERT INTO goals (telegram_id, goal) VALUES (?, ?)",
-    args: [telegramId, goal],
+    sql: "INSERT INTO goals (id, telegram_id, goal, baseline, target) VALUES (?, ?, ?, ?, ?)",
+    args: [id, telegramId, goal, baseline || null, target || null],
   });
 }
 
 /**
  * Get all active goals for a user
  * @param {string} telegramId
- * @returns {Promise<Array<{id: number, goal: string}>>}
+ * @returns {Promise<Array<{id: string, goal: string, baseline: string|null, target: string|null}>>}
  */
 export async function getGoals(telegramId) {
   const result = await db.execute({
-    sql: "SELECT id, goal FROM goals WHERE telegram_id = ? AND active = 1 ORDER BY created_at",
+    sql: "SELECT id, goal, baseline, target FROM goals WHERE telegram_id = ? AND active = 1 ORDER BY created_at",
     args: [telegramId],
   });
-  return result.rows.map((r) => ({ id: Number(r.id), goal: r.goal }));
+  return result.rows.map((r) => ({
+    id: r.id,
+    goal: r.goal,
+    baseline: r.baseline || null,
+    target: r.target || null,
+  }));
 }
 
 /**
  * Remove a goal by id
  * @param {string} telegramId
- * @param {number} goalId
+ * @param {string} goalId
  */
 export async function removeGoal(telegramId, goalId) {
   await db.execute({
@@ -99,13 +108,22 @@ export async function removeGoal(telegramId, goalId) {
 /**
  * Update an existing goal
  * @param {string} telegramId
- * @param {number} goalId
+ * @param {string} goalId
  * @param {string} newGoal
+ * @param {string} [baseline]
+ * @param {string} [target]
  */
-export async function updateGoal(telegramId, goalId, newGoal) {
+export async function updateGoal(
+  telegramId,
+  goalId,
+  newGoal,
+  baseline,
+  target,
+) {
   await db.execute({
-    sql: "UPDATE goals SET goal = ? WHERE id = ? AND telegram_id = ? AND active = 1",
-    args: [newGoal, goalId, telegramId],
+    sql: `UPDATE goals SET goal = ?, baseline = COALESCE(?, baseline), target = COALESCE(?, target)
+          WHERE id = ? AND telegram_id = ? AND active = 1`,
+    args: [newGoal, baseline || null, target || null, goalId, telegramId],
   });
 }
 
@@ -161,22 +179,23 @@ export async function getPreferences(telegramId) {
 /**
  * Add a progress entry tied to a goal
  * @param {string} telegramId
- * @param {number} goalId
+ * @param {string} goalId
  * @param {string} content
  */
 export async function addEntry(telegramId, goalId, content) {
+  const id = generateId();
   await db.execute({
-    sql: "INSERT INTO goal_entries (telegram_id, goal_id, content) VALUES (?, ?, ?)",
-    args: [telegramId, goalId, content],
+    sql: "INSERT INTO goal_entries (id, telegram_id, goal_id, content) VALUES (?, ?, ?, ?)",
+    args: [id, telegramId, goalId, content],
   });
 }
 
 /**
  * Get recent entries for a specific goal
  * @param {string} telegramId
- * @param {number} goalId
+ * @param {string} goalId
  * @param {number} [limit=10]
- * @returns {Promise<Array<{id: number, content: string, created_at: string}>>}
+ * @returns {Promise<Array<{id: string, content: string, created_at: string}>>}
  */
 export async function getEntriesByGoal(telegramId, goalId, limit = 10) {
   const result = await db.execute({
@@ -186,7 +205,7 @@ export async function getEntriesByGoal(telegramId, goalId, limit = 10) {
     args: [telegramId, goalId, limit],
   });
   return result.rows.map((r) => ({
-    id: Number(r.id),
+    id: r.id,
     content: r.content,
     created_at: r.created_at,
   }));
@@ -196,7 +215,7 @@ export async function getEntriesByGoal(telegramId, goalId, limit = 10) {
  * Get all recent entries across all goals
  * @param {string} telegramId
  * @param {number} [limit=15]
- * @returns {Promise<Array<{id: number, goal_id: number, goal: string, content: string, created_at: string}>>}
+ * @returns {Promise<Array<{id: string, goal_id: string, goal: string, content: string, created_at: string}>>}
  */
 export async function getRecentEntries(telegramId, limit = 15) {
   const result = await db.execute({
@@ -208,8 +227,8 @@ export async function getRecentEntries(telegramId, limit = 15) {
     args: [telegramId, limit],
   });
   return result.rows.map((r) => ({
-    id: Number(r.id),
-    goal_id: Number(r.goal_id),
+    id: r.id,
+    goal_id: r.goal_id,
     goal: r.goal,
     content: r.content,
     created_at: r.created_at,

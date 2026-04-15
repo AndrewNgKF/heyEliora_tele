@@ -5,6 +5,7 @@ Then can store like.. where I am starting from, what a good result looks like et
 You know what I mean? 
 
 
+Any ways to keep things generic, so people can write their own tools or skills?
 
 
 
@@ -49,7 +50,6 @@ Do you also know the current date and time? And current events?
 
 
 
-Any ways to keep things generic, so people can write their own tools or skills?
 
 
 

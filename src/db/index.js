@@ -25,9 +25,11 @@ export async function initDb() {
     )`,
     `CREATE INDEX IF NOT EXISTS idx_messages_user ON messages(telegram_id, created_at)`,
     `CREATE TABLE IF NOT EXISTS goals (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id TEXT PRIMARY KEY,
       telegram_id TEXT NOT NULL,
       goal TEXT NOT NULL,
+      baseline TEXT,
+      target TEXT,
       active INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`,
@@ -40,9 +42,9 @@ export async function initDb() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`,
     `CREATE TABLE IF NOT EXISTS goal_entries (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id TEXT PRIMARY KEY,
       telegram_id TEXT NOT NULL,
-      goal_id INTEGER NOT NULL,
+      goal_id TEXT NOT NULL,
       content TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (goal_id) REFERENCES goals(id)
@@ -50,5 +52,6 @@ export async function initDb() {
     `CREATE INDEX IF NOT EXISTS idx_entries_user ON goal_entries(telegram_id, created_at)`,
     `CREATE INDEX IF NOT EXISTS idx_entries_goal ON goal_entries(goal_id, created_at)`,
   ]);
+
   console.log("[eliora] database initialized");
 }

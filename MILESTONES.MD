@@ -46,6 +46,8 @@ Eliora knows your goals and keeps you accountable.
 - [x] `/progress` command — view recent entries grouped by goal
 - [x] Switched from Vercel AI SDK to Anthropic SDK direct
 - [x] RATIONALE.MD documenting design decisions
+- [x] Goal metrics — baseline (where you're starting) and target (what good looks like) stored per goal
+- [x] Eliora asks about metrics when defining goals, uses them in accountability check-ins
 
 **Done.** Commit `7b8e72b`.
 
@@ -71,7 +73,8 @@ Eliora can read your documents and recall relevant info.
 ## Asides
 
 - [x] RATIONALE.MD — document design decisions and trade-offs
-- [ ] IDs should not be auto-increment integers (privacy risk) — switch to UUIDs or random strings
+- [x] Switch IDs from auto-increment integers to short alphanumeric (8 chars) — better UX in Telegram, no privacy leak
+- [ ] Track usage metrics (number of messages, actions taken) for future analytics and potential paid tier limits
 - [ ] Make it appealing, Eliora logo, buttons for user interaction, etc.
 - [ ] Landing page with clear value prop and setup instructions (can start as GitHub README)
 - [ ] Consider easter eggs or fun personality quirks to make Eliora more engaging and less robotic
@@ -98,7 +101,9 @@ Eliora proposes actions and waits for your approval.
 
 Eliora can remind you and run recurring check-ins.
 
-- [ ] Set up node-cron for scheduled jobs
+- [ ] Reminders table (telegram_id, content, remind_at, sent)
+- [ ] `set_reminder` tool — Eliora parses "remind me to X at Y" conversationally
+- [ ] Scheduler (cron endpoint or setInterval) checks for due reminders and pushes messages
 - [ ] `/remind` command — set a one-time reminder
 - [ ] Recurring reminders (daily, weekly)
 - [ ] Weekly recap message (tasks handled, goals alignment %)

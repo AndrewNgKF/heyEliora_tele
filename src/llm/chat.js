@@ -14,38 +14,28 @@ import {
 
 const client = new Anthropic();
 
-const BASE_PROMPT = `You are Eliora, a personal AI assistant who lives in Telegram.
-You are warm, direct, and genuinely helpful — like a sharp friend who happens to be incredibly organized.
-Keep responses concise unless asked for detail. Be conversational, not corporate.
-You remember context from the current conversation and use it naturally.
+const BASE_PROMPT = `You are Eliora, a personal AI assistant on Telegram. Warm, direct, concise. Like a sharp friend who's incredibly organized. Conversational, not corporate.
 
-## How you handle goals
+## Formatting
+You're on Telegram. Use *bold* (single asterisk), _italic_ (underscores), and \`code\`. Never use ** or other markdown — Telegram won't render it.
 
-When a user mentions a goal or ambition:
-1. Ask clarifying questions to make it specific and actionable (how much, by when, what does success look like).
-2. Once you have enough detail, use save_goal to store a clear, specific version.
-3. Never save vague goals — always refine first.
+## Goals
+- When a user mentions a goal: ask clarifying questions first (how much, by when, baseline, target). Never save vague goals.
+- Use save_goal only for NEW goals, after refining. Include baseline and target when possible.
+- Use update_goal (not remove+save) when a goal changes. Never duplicate.
+- Use remove_goal only when the user wants to abandon a goal. Confirm first.
+- Metrics don't have to be numeric. "Can make pasta" → "Cook 3 meals/week from scratch" is fine.
 
-When the user refines or changes an existing goal, use update_goal with its id. Do NOT create a duplicate.
-When the user wants to drop a goal, use remove_goal with its id. Confirm before removing.
+## Preferences
+When a user mentions work style, tone, or scheduling needs — save_preference silently.
 
-## How you handle preferences
-
-When a user mentions how they like to work, their communication style, or scheduling needs, use save_preference to remember it. You don't need to ask — just save it naturally.
-
-## Tracking progress
-
-When the user mentions doing something relevant to one of their goals, use track_progress to log it — silently, without asking. This includes:
-- Positive: "went to the gym," "shipped the feature," "ate clean today"
-- Negative: "skipped my workout," "procrastinated all day," "ate junk"
-
-Only track goal-relevant activity. Random chat doesn't get logged.
-Always include the correct goal_id. Write the entry as a brief factual note.
-Never call track_progress more than once for the same activity.
+## Progress tracking
+- When the user mentions goal-relevant activity, call track_progress silently. Positive and negative.
+- Only goal-relevant activity. Always use the correct goal_id. Brief factual note.
+- Never call track_progress twice for the same activity.
 
 ## Accountability
-
-You know the user's goals and their recent progress entries. When they talk about what they're doing, gently check if it aligns. If something seems off-track, say so — you're a friend who tells the truth, not a yes-machine. Reference their actual progress when checking in.`;
+You know the user's goals, baselines, targets, and recent entries. Reference them. If something seems off-track, say so — you tell the truth.`;
 
 const TOOLS = [
   {
@@ -56,6 +46,16 @@ const TOOLS = [
       type: "object",
       properties: {
         goal: { type: "string", description: "The refined, specific goal" },
+        baseline: {
+          type: "string",
+          description:
+            "Where the user is starting from (e.g. '85kg', 'can run 2km', '0 subscribers')",
+        },
+        target: {
+          type: "string",
+          description:
+            "What a good result looks like (e.g. '75kg by September', 'run 10km', '1000 subscribers')",
+        },
       },
       required: ["goal"],
     },
@@ -67,8 +67,16 @@ const TOOLS = [
     input_schema: {
       type: "object",
       properties: {
-        goal_id: { type: "number", description: "The id of the existing goal" },
+        goal_id: { type: "string", description: "The id of the existing goal" },
         goal: { type: "string", description: "The updated goal text" },
+        baseline: {
+          type: "string",
+          description: "Updated starting point, if changed",
+        },
+        target: {
+          type: "string",
+          description: "Updated target, if changed",
+        },
       },
       required: ["goal_id", "goal"],
     },
@@ -81,7 +89,7 @@ const TOOLS = [
       type: "object",
       properties: {
         goal_id: {
-          type: "number",
+          type: "string",
           description: "The id of the goal to remove",
         },
       },
@@ -113,7 +121,7 @@ const TOOLS = [
       type: "object",
       properties: {
         goal_id: {
-          type: "number",
+          type: "string",
           description: "The id of the goal this entry relates to",
         },
         content: {
@@ -127,7 +135,7 @@ const TOOLS = [
   },
 ];
 
-const MAX_HISTORY = 20;
+const MAX_HISTORY = 10;
 
 /**
  * Build a personalized system prompt from user data
@@ -144,8 +152,15 @@ async function buildSystemPrompt(telegramId) {
   let prompt = BASE_PROMPT;
 
   if (goals.length > 0) {
-    const goalList = goals.map((g) => `- [id:${g.id}] ${g.goal}`).join("\n");
-    prompt += `\n\nThe user's current goals and ambitions:\n${goalList}\nKeep these in mind. When relevant, check if what they're doing aligns with these goals. Gently call it out if something seems off-track.`;
+    const goalList = goals
+      .map((g) => {
+        let line = `- [id:${g.id}] ${g.goal}`;
+        if (g.baseline) line += ` | baseline: ${g.baseline}`;
+        if (g.target) line += ` | target: ${g.target}`;
+        return line;
+      })
+      .join("\n");
+    prompt += `\n\nThe user's current goals and ambitions:\n${goalList}\nKeep these in mind. Reference their baseline and target when giving accountability feedback. When relevant, check if what they're doing aligns with these goals. Gently call it out if something seems off-track.`;
   }
 
   if (entries.length > 0) {
@@ -191,11 +206,17 @@ function extractText(content) {
 async function executeTool(telegramId, toolName, input) {
   switch (toolName) {
     case "save_goal":
-      await addGoal(telegramId, input.goal);
-      return `Goal saved: "${input.goal}"`;
+      await addGoal(telegramId, input.goal, input.baseline, input.target);
+      return `Goal saved: "${input.goal}"${input.baseline ? ` (baseline: ${input.baseline})` : ""}${input.target ? ` (target: ${input.target})` : ""}`;
     case "update_goal":
-      await updateGoal(telegramId, input.goal_id, input.goal);
-      return `Goal updated (id:${input.goal_id}): "${input.goal}"`;
+      await updateGoal(
+        telegramId,
+        input.goal_id,
+        input.goal,
+        input.baseline,
+        input.target,
+      );
+      return `Goal updated (id:${input.goal_id}): "${input.goal}"${input.baseline ? ` (baseline: ${input.baseline})` : ""}${input.target ? ` (target: ${input.target})` : ""}`;
     case "remove_goal":
       await removeGoal(telegramId, input.goal_id);
       return `Goal removed (id:${input.goal_id})`;
@@ -232,7 +253,7 @@ export async function chat(userId, message) {
   // Loop to handle tool calls
   while (maxSteps > 0) {
     const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 1024,
       system: systemPrompt,
       messages,
