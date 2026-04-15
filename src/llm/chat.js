@@ -41,6 +41,7 @@ When the user mentions doing something relevant to one of their goals, use track
 
 Only track goal-relevant activity. Random chat doesn't get logged.
 Always include the correct goal_id. Write the entry as a brief factual note.
+Never call track_progress more than once for the same activity.
 
 ## Accountability
 
@@ -252,8 +253,22 @@ export async function chat(userId, message) {
 
       // Execute each tool call and collect results
       const toolResults = [];
+      const trackedEntries = new Set();
       for (const block of response.content) {
         if (block.type === "tool_use") {
+          // Deduplicate track_progress calls within the same response
+          if (block.name === "track_progress") {
+            const key = `${block.input.goal_id}:${block.input.content}`;
+            if (trackedEntries.has(key)) {
+              toolResults.push({
+                type: "tool_result",
+                tool_use_id: block.id,
+                content: "Already logged this entry — skipped duplicate.",
+              });
+              continue;
+            }
+            trackedEntries.add(key);
+          }
           const result = await executeTool(userId, block.name, block.input);
           toolResults.push({
             type: "tool_result",

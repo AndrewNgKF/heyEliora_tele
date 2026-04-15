@@ -1,48 +1,53 @@
 # heyEliora — Milestones
 
-## Milestone 1: The Bot (Foundation)
+## Milestone 1: The Bot (Foundation) ✅
 
 Get a working Telegram bot that can have a basic conversation via LLM.
 
-- [ ] Init project (Bun + JavaScript + JSDoc + project structure)
-- [ ] Set up grammY bot with webhook
-- [ ] Bot responds to `/start` with a welcome message
-- [ ] Connect Vercel AI SDK + Claude
-- [ ] Bot forwards user messages to Claude and returns the response
-- [ ] Basic conversation context (last N messages kept in memory)
-- [ ] Environment config (.env for bot token, API keys)
+- [x] Init project (Bun + JavaScript + JSDoc + project structure)
+- [x] Set up grammY bot with webhook + Express server
+- [x] Bot responds to `/start` with a welcome message
+- [x] Connect Claude via Anthropic SDK
+- [x] Bot forwards user messages to Claude and returns the response
+- [x] Basic conversation context (last N messages kept in memory)
+- [x] Environment config (.env for bot token, API keys)
 
-**Done when:** You can message Eliora on Telegram and have a real back-and-forth conversation.
+**Done.** Commit `6231d66`.
 
 ---
 
-## Milestone 2: Database + User Memory
+## Milestone 2: Database + User Memory ✅
 
 Eliora remembers who you are between conversations.
 
-- [ ] Set up Turso client + connection
-- [ ] Create users table (telegram_id, name, created_at)
-- [ ] Create conversations table (user_id, role, content, timestamp)
-- [ ] Store and retrieve conversation history per user
-- [ ] Eliora loads past context when you message her again
-- [ ] `/forget` command — clears conversation history
+- [x] Set up Turso client + connection
+- [x] Create users table (telegram_id, name, created_at)
+- [x] Create messages table (telegram_id, role, content, created_at)
+- [x] Store and retrieve conversation history per user
+- [x] Eliora loads past context when you message her again
+- [x] `/forget` command — clears conversation history
 
-**Done when:** You can close Telegram, come back hours later, and Eliora remembers what you talked about.
+**Done.** Commit `6231d66`.
 
 ---
 
-## Milestone 3: Personality + Goals
+## Milestone 3: Personality + Goals ✅
 
 Eliora knows your goals and keeps you accountable.
 
-- [ ] Create user_preferences table (goals, work style, tone preferences)
-- [ ] `/goals` command — set or update your goals and ambitions
-- [ ] `/preferences` command — set work style, tone, scheduling preferences
-- [ ] System prompt dynamically built from user preferences + goals
-- [ ] Eliora references your goals naturally in conversation
-- [ ] `/whatsup` command — Eliora gives a status check on your goals
+- [x] Goals table + conversational goal management via tools (save, update, remove)
+- [x] Preferences table (work style, tone, schedule) saved conversationally
+- [x] `/goals` command — view goals (adding/updating happens via conversation)
+- [x] `/preferences` command — view preferences
+- [x] System prompt dynamically built from goals, preferences, and recent entries
+- [x] `/whatsup` command — data-driven accountability check-in
+- [x] `track_progress` tool — Eliora silently logs goal-relevant activity
+- [x] `goal_entries` table — progress tracking tied to goals
+- [x] `/progress` command — view recent entries grouped by goal
+- [x] Switched from Vercel AI SDK to Anthropic SDK direct
+- [x] RATIONALE.MD documenting design decisions
 
-**Done when:** You tell Eliora your goals, and she factors them into her responses and suggestions.
+**Done.** Commit `7b8e72b`.
 
 ---
 
@@ -60,6 +65,18 @@ Eliora can read your documents and recall relevant info.
 - [ ] `/deletedoc` command — remove a document and its embeddings
 
 **Done when:** You send Eliora a PDF, then ask her questions about it and she answers accurately from the content.
+
+---
+
+## Asides
+
+- [x] RATIONALE.MD — document design decisions and trade-offs
+- [ ] IDs should not be auto-increment integers (privacy risk) — switch to UUIDs or random strings
+- [ ] Make it appealing, Eliora logo, buttons for user interaction, etc.
+- [ ] Landing page with clear value prop and setup instructions (can start as GitHub README)
+- [ ] Consider easter eggs or fun personality quirks to make Eliora more engaging and less robotic
+- [ ] Summarize conversations in the database to save space (e.g. keep last 5 messages, then summarize older ones into a single entry)
+- [ ] Personal Profile, What Eliora knows about you at a glance (goals, preferences, recent activity) — maybe via `/profile` command or in the system prompt for quick reference
 
 ---
 
