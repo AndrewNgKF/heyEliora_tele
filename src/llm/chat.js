@@ -168,8 +168,11 @@ export async function chat(userId, message) {
             }
             trackedEntries.add(key);
           }
-          const result = await executeTool(userId, block.name, block.input)
-            .catch((err) => `Tool error: ${err.message}`);
+          const result = await executeTool(
+            userId,
+            block.name,
+            block.input,
+          ).catch((err) => `Tool error: ${err.message}`);
           toolResults.push({
             type: "tool_result",
             tool_use_id: block.id,

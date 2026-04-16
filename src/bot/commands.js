@@ -10,7 +10,11 @@ import {
   incrementUsage,
   getUserMeta,
 } from "../db/queries.js";
-import { getTierConfig, TIMEZONE_OPTIONS, HOWTO_TEXT } from "../config/CONSTANTS.js";
+import {
+  getTierConfig,
+  TIMEZONE_OPTIONS,
+  HOWTO_TEXT,
+} from "../config/CONSTANTS.js";
 import { formatGoalList, performCheckIn } from "./helpers.js";
 
 export const commands = new Composer();
@@ -49,10 +53,7 @@ commands.command("howto", async (ctx) => {
     .text("Set a goal 🎯", "action:setgoal")
     .text("Check-in 👋", "action:whatsup");
 
-  await ctx.replyMd(
-    HOWTO_TEXT,
-    { reply_markup: keyboard },
-  );
+  await ctx.replyMd(HOWTO_TEXT, { reply_markup: keyboard });
 });
 
 // /goals

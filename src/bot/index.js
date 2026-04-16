@@ -10,9 +10,9 @@ if (!token) throw new Error("BOT_TOKEN is required in .env");
 export const bot = new Bot(token);
 
 // Register command menu (fire-and-forget is fine — logs errors)
-bot.api.setMyCommands(COMMANDS).catch((err) =>
-  console.error("[eliora] failed to set commands:", err),
-);
+bot.api
+  .setMyCommands(COMMANDS)
+  .catch((err) => console.error("[eliora] failed to set commands:", err));
 
 // Middleware — runs before every handler
 bot.use(setUserContext);

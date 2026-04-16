@@ -6,7 +6,9 @@ const TRUNCATION_SUFFIX = "\n\n…(truncated)";
 /** Trim a message to fit Telegram's 4096-char limit. */
 function truncate(text) {
   if (text.length <= TG_MAX_LENGTH) return text;
-  return text.slice(0, TG_MAX_LENGTH - TRUNCATION_SUFFIX.length) + TRUNCATION_SUFFIX;
+  return (
+    text.slice(0, TG_MAX_LENGTH - TRUNCATION_SUFFIX.length) + TRUNCATION_SUFFIX
+  );
 }
 
 /**

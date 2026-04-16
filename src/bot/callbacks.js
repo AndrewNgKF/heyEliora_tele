@@ -40,7 +40,11 @@ callbacks.on("callback_query:data", async (ctx) => {
         break;
       }
       try {
-        const { text: reply, inputTokens, outputTokens } = await chat(
+        const {
+          text: reply,
+          inputTokens,
+          outputTokens,
+        } = await chat(
           ctx.userId,
           "I want to set a new goal. Help me figure out what to work on.",
         );
