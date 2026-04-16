@@ -1,5 +1,6 @@
 import { db } from "./index.js";
 import { generateId } from "../utils/id.js";
+import { getTierConfig, HARD_DAILY_CAP } from "../config/CONSTANTS.js";
 
 /**
  * Ensure a user exists, create if not
@@ -67,7 +68,7 @@ export async function clearHistory(telegramId) {
  * @param {string} [baseline]
  * @param {string} [target]
  */
-export async function addGoal(telegramId, goal, baseline, target) {
+export async function saveGoal(telegramId, goal, baseline, target) {
   const id = generateId();
   await db.execute({
     sql: "INSERT INTO goals (id, telegram_id, goal, baseline, target) VALUES (?, ?, ?, ?, ?)",
@@ -182,7 +183,7 @@ export async function getPreferences(telegramId) {
  * @param {string} goalId
  * @param {string} content
  */
-export async function addEntry(telegramId, goalId, content) {
+export async function logProgress(telegramId, goalId, content) {
   const id = generateId();
   await db.execute({
     sql: "INSERT INTO goal_entries (id, telegram_id, goal_id, content) VALUES (?, ?, ?, ?)",
@@ -217,7 +218,7 @@ export async function getEntriesByGoal(telegramId, goalId, limit = 10) {
  * @param {number} [limit=15]
  * @returns {Promise<Array<{id: string, goal_id: string, goal: string, content: string, created_at: string}>>}
  */
-export async function getRecentEntries(telegramId, limit = 15) {
+export async function getRecentProgress(telegramId, limit = 15) {
   const result = await db.execute({
     sql: `SELECT e.id, e.goal_id, g.goal, e.content, e.created_at
           FROM goal_entries e
@@ -233,4 +234,126 @@ export async function getRecentEntries(telegramId, limit = 15) {
     content: r.content,
     created_at: r.created_at,
   }));
+}
+
+// --- Usage ---
+
+/**
+ * Get today's date string in the user's timezone
+ * @param {string} timezone - IANA timezone (e.g. "America/New_York")
+ * @returns {string} YYYY-MM-DD
+ */
+function getTodayForTimezone(timezone) {
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return formatter.format(new Date());
+  } catch {
+    // Invalid timezone — fall back to UTC
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+
+/**
+ * Get user's tier and timezone
+ * @param {string} telegramId
+ * @returns {Promise<{ tier: string, timezone: string }>}
+ */
+export async function getUserMeta(telegramId) {
+  const result = await db.execute({
+    sql: "SELECT tier, timezone FROM users WHERE telegram_id = ?",
+    args: [telegramId],
+  });
+  if (result.rows.length === 0) return { tier: "free", timezone: "UTC" };
+  return {
+    tier: result.rows[0].tier || "free",
+    timezone: result.rows[0].timezone || "UTC",
+  };
+}
+
+/**
+ * Validate an IANA timezone string
+ * @param {string} tz
+ * @returns {boolean}
+ */
+export function isValidTimezone(tz) {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Set a user's timezone
+ * @param {string} telegramId
+ * @param {string} timezone - IANA timezone (e.g. "America/New_York")
+ */
+export async function setTimezone(telegramId, timezone) {
+  await db.execute({
+    sql: "UPDATE users SET timezone = ? WHERE telegram_id = ?",
+    args: [timezone, telegramId],
+  });
+}
+
+/**
+ * Check if user can send a message (within daily limit).
+ * @param {string} telegramId
+ * @returns {Promise<{ allowed: boolean, remaining: number, limit: number }>}
+ */
+export async function checkUsage(telegramId) {
+  const { tier, timezone } = await getUserMeta(telegramId);
+  const config = getTierConfig(tier);
+  const limit = Math.min(config.dailyLimit, HARD_DAILY_CAP);
+  const today = getTodayForTimezone(timezone);
+
+  const result = await db.execute({
+    sql: "SELECT message_count FROM daily_usage WHERE telegram_id = ? AND usage_date = ?",
+    args: [telegramId, today],
+  });
+
+  const count =
+    result.rows.length > 0 ? Number(result.rows[0].message_count) : 0;
+  return {
+    allowed: count < limit,
+    remaining: Math.max(0, limit - count),
+    limit,
+  };
+}
+
+/**
+ * Increment the daily message count and token usage for a user
+ * @param {string} telegramId
+ * @param {number} [inputTokens=0]
+ * @param {number} [outputTokens=0]
+ */
+export async function incrementUsage(
+  telegramId,
+  inputTokens = 0,
+  outputTokens = 0,
+) {
+  const { timezone } = await getUserMeta(telegramId);
+  const today = getTodayForTimezone(timezone);
+
+  await db.execute({
+    sql: `INSERT INTO daily_usage (telegram_id, usage_date, message_count, input_tokens, output_tokens)
+          VALUES (?, ?, 1, ?, ?)
+          ON CONFLICT(telegram_id, usage_date) DO UPDATE SET
+            message_count = message_count + 1,
+            input_tokens = input_tokens + ?,
+            output_tokens = output_tokens + ?`,
+    args: [
+      telegramId,
+      today,
+      inputTokens,
+      outputTokens,
+      inputTokens,
+      outputTokens,
+    ],
+  });
 }

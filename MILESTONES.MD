@@ -53,7 +53,38 @@ Eliora knows your goals and keeps you accountable.
 
 ---
 
-## Milestone 4: Document Parsing + RAG
+## Milestone 4: Scheduling + Reminders
+
+Eliora can remind you and run recurring check-ins.
+
+- [ ] Reminders table (telegram_id, content, remind_at, sent)
+- [ ] `set_reminder` tool — Eliora parses "remind me to X at Y" conversationally
+- [ ] Scheduler (cron endpoint or setInterval) checks for due reminders and pushes messages
+- [ ] `/remind` command — set a one-time reminder
+- [ ] Recurring reminders (daily, weekly)
+- [ ] Weekly recap message (tasks handled, goals alignment %)
+- [ ] Goal check-in (weekly — "3 of 8 tasks aligned with your Q2 goal")
+- [ ] Re-engagement nudge (if inactive 3+ days)
+
+**Done when:** Eliora sends you a reminder you set, and delivers a weekly recap without being asked.
+
+---
+
+## Milestone 5: Approval Flow + Actions
+
+Eliora proposes actions and waits for your approval.
+
+- [ ] Inline keyboard system (Approve / Reject / Edit buttons)
+- [ ] Action proposal format ("I'd like to do X. Approve?")
+- [ ] Action queue — store pending actions per user
+- [ ] Eliora suggests next actions after reading documents or conversations
+- [ ] Action history — `/actions` shows recent completed actions
+
+**Done when:** Eliora suggests an action, you tap Approve, and she confirms it's done. Nothing happens without your say-so.
+
+---
+
+## Milestone 6: Document Parsing + RAG
 
 Eliora can read your documents and recall relevant info.
 
@@ -74,43 +105,12 @@ Eliora can read your documents and recall relevant info.
 
 - [x] RATIONALE.MD — document design decisions and trade-offs
 - [x] Switch IDs from auto-increment integers to short alphanumeric (8 chars) — better UX in Telegram, no privacy leak
-- [ ] Track usage metrics (number of messages, actions taken) for future analytics and potential paid tier limits
+- [x] Track usage metrics (number of messages, actions taken) for future analytics and potential paid tier limits
 - [ ] Make it appealing, Eliora logo, buttons for user interaction, etc.
 - [ ] Landing page with clear value prop and setup instructions (can start as GitHub README)
 - [ ] Consider easter eggs or fun personality quirks to make Eliora more engaging and less robotic
 - [ ] Summarize conversations in the database to save space (e.g. keep last 5 messages, then summarize older ones into a single entry)
 - [ ] Personal Profile, What Eliora knows about you at a glance (goals, preferences, recent activity) — maybe via `/profile` command or in the system prompt for quick reference
-
----
-
-## Milestone 5: Approval Flow + Actions
-
-Eliora proposes actions and waits for your approval.
-
-- [ ] Inline keyboard system (Approve / Reject / Edit buttons)
-- [ ] Action proposal format ("I'd like to do X. Approve?")
-- [ ] Action queue — store pending actions per user
-- [ ] Eliora suggests next actions after reading documents or conversations
-- [ ] Action history — `/actions` shows recent completed actions
-
-**Done when:** Eliora suggests an action, you tap Approve, and she confirms it's done. Nothing happens without your say-so.
-
----
-
-## Milestone 6: Scheduling + Reminders
-
-Eliora can remind you and run recurring check-ins.
-
-- [ ] Reminders table (telegram_id, content, remind_at, sent)
-- [ ] `set_reminder` tool — Eliora parses "remind me to X at Y" conversationally
-- [ ] Scheduler (cron endpoint or setInterval) checks for due reminders and pushes messages
-- [ ] `/remind` command — set a one-time reminder
-- [ ] Recurring reminders (daily, weekly)
-- [ ] Weekly recap message (tasks handled, goals alignment %)
-- [ ] Goal check-in (weekly — "3 of 8 tasks aligned with your Q2 goal")
-- [ ] Re-engagement nudge (if inactive 3+ days)
-
-**Done when:** Eliora sends you a reminder you set, and delivers a weekly recap without being asked.
 
 ---
 
@@ -173,7 +173,3 @@ Ship it.
 **Done when:** Someone can clone the repo, set their API keys, and have their own Eliora running in 10 minutes.
 
 ---
-
-## Current Status
-
-**Active milestone:** 1 — The Bot

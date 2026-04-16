@@ -1,7 +1,10 @@
 import { createClient } from "@libsql/client";
 
+const url = process.env.TURSO_URL;
+if (!url) throw new Error("TURSO_URL is required in .env");
+
 export const db = createClient({
-  url: process.env.TURSO_URL,
+  url,
   authToken: process.env.TURSO_TOKEN,
 });
 
@@ -9,11 +12,14 @@ export const db = createClient({
  * Create tables if they don't exist
  */
 export async function initDb() {
+  await db.execute("PRAGMA foreign_keys = ON");
   await db.batch([
     `CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       telegram_id TEXT UNIQUE NOT NULL,
       name TEXT,
+      tier TEXT DEFAULT 'free',
+      timezone TEXT DEFAULT 'UTC',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`,
     `CREATE TABLE IF NOT EXISTS messages (
@@ -51,6 +57,14 @@ export async function initDb() {
     )`,
     `CREATE INDEX IF NOT EXISTS idx_entries_user ON goal_entries(telegram_id, created_at)`,
     `CREATE INDEX IF NOT EXISTS idx_entries_goal ON goal_entries(goal_id, created_at)`,
+    `CREATE TABLE IF NOT EXISTS daily_usage (
+      telegram_id TEXT NOT NULL,
+      usage_date TEXT NOT NULL,
+      message_count INTEGER DEFAULT 0,
+      input_tokens INTEGER DEFAULT 0,
+      output_tokens INTEGER DEFAULT 0,
+      PRIMARY KEY (telegram_id, usage_date)
+    )`,
   ]);
 
   console.log("[eliora] database initialized");

@@ -4,13 +4,15 @@ import {
   getHistory,
   getGoals,
   getPreferences,
-  addGoal,
-  updateGoal,
-  removeGoal,
-  setPreferences,
-  addEntry,
-  getRecentEntries,
+  getRecentProgress,
+  getUserMeta,
 } from "../db/queries.js";
+import {
+  getTierConfig,
+  MAX_HISTORY,
+  MAX_TOOL_STEPS,
+} from "../config/CONSTANTS.js";
+import { TOOLS, executeTool } from "./tools.js";
 
 const client = new Anthropic();
 
@@ -37,106 +39,6 @@ When a user mentions work style, tone, or scheduling needs — save_preference s
 ## Accountability
 You know the user's goals, baselines, targets, and recent entries. Reference them. If something seems off-track, say so — you tell the truth.`;
 
-const TOOLS = [
-  {
-    name: "save_goal",
-    description:
-      "Save a brand new goal. Only for NEW goals, not updates. Only call after refining through conversation.",
-    input_schema: {
-      type: "object",
-      properties: {
-        goal: { type: "string", description: "The refined, specific goal" },
-        baseline: {
-          type: "string",
-          description:
-            "Where the user is starting from (e.g. '85kg', 'can run 2km', '0 subscribers')",
-        },
-        target: {
-          type: "string",
-          description:
-            "What a good result looks like (e.g. '75kg by September', 'run 10km', '1000 subscribers')",
-        },
-      },
-      required: ["goal"],
-    },
-  },
-  {
-    name: "update_goal",
-    description:
-      "Update an existing goal when the user refines, changes, or evolves it. Use instead of save_goal for existing goals.",
-    input_schema: {
-      type: "object",
-      properties: {
-        goal_id: { type: "string", description: "The id of the existing goal" },
-        goal: { type: "string", description: "The updated goal text" },
-        baseline: {
-          type: "string",
-          description: "Updated starting point, if changed",
-        },
-        target: {
-          type: "string",
-          description: "Updated target, if changed",
-        },
-      },
-      required: ["goal_id", "goal"],
-    },
-  },
-  {
-    name: "remove_goal",
-    description:
-      "Remove a goal the user no longer wants to pursue. Confirm with the user before calling this.",
-    input_schema: {
-      type: "object",
-      properties: {
-        goal_id: {
-          type: "string",
-          description: "The id of the goal to remove",
-        },
-      },
-      required: ["goal_id"],
-    },
-  },
-  {
-    name: "save_preference",
-    description:
-      "Save a user preference about work style, communication tone, or schedule.",
-    input_schema: {
-      type: "object",
-      properties: {
-        key: {
-          type: "string",
-          enum: ["workStyle", "tone", "schedulePref"],
-          description: "The preference type",
-        },
-        value: { type: "string", description: "The preference value" },
-      },
-      required: ["key", "value"],
-    },
-  },
-  {
-    name: "track_progress",
-    description:
-      "Silently log a progress entry when the user mentions goal-relevant activity. Works for both positive and negative progress. Do NOT ask the user before calling this.",
-    input_schema: {
-      type: "object",
-      properties: {
-        goal_id: {
-          type: "string",
-          description: "The id of the goal this entry relates to",
-        },
-        content: {
-          type: "string",
-          description:
-            "Brief factual note about what the user did or didn't do",
-        },
-      },
-      required: ["goal_id", "content"],
-    },
-  },
-];
-
-const MAX_HISTORY = 10;
-
 /**
  * Build a personalized system prompt from user data
  * @param {string} telegramId
@@ -146,7 +48,7 @@ async function buildSystemPrompt(telegramId) {
   const [goals, prefs, entries] = await Promise.all([
     getGoals(telegramId),
     getPreferences(telegramId),
-    getRecentEntries(telegramId),
+    getRecentProgress(telegramId),
   ]);
 
   let prompt = BASE_PROMPT;
@@ -197,74 +99,50 @@ function extractText(content) {
 }
 
 /**
- * Execute a tool call
- * @param {string} telegramId
- * @param {string} toolName
- * @param {Record<string, any>} input
- * @returns {Promise<string>}
- */
-async function executeTool(telegramId, toolName, input) {
-  switch (toolName) {
-    case "save_goal":
-      await addGoal(telegramId, input.goal, input.baseline, input.target);
-      return `Goal saved: "${input.goal}"${input.baseline ? ` (baseline: ${input.baseline})` : ""}${input.target ? ` (target: ${input.target})` : ""}`;
-    case "update_goal":
-      await updateGoal(
-        telegramId,
-        input.goal_id,
-        input.goal,
-        input.baseline,
-        input.target,
-      );
-      return `Goal updated (id:${input.goal_id}): "${input.goal}"${input.baseline ? ` (baseline: ${input.baseline})` : ""}${input.target ? ` (target: ${input.target})` : ""}`;
-    case "remove_goal":
-      await removeGoal(telegramId, input.goal_id);
-      return `Goal removed (id:${input.goal_id})`;
-    case "save_preference":
-      await setPreferences(telegramId, { [input.key]: input.value });
-      return `Preference saved: ${input.key} = "${input.value}"`;
-    case "track_progress":
-      await addEntry(telegramId, input.goal_id, input.content);
-      return `Entry logged for goal ${input.goal_id}: "${input.content}"`;
-    default:
-      return `Unknown tool: ${toolName}`;
-  }
-}
-
-/**
  * Chat with Eliora
  * @param {string} userId
  * @param {string} message
  * @returns {Promise<string>}
  */
 export async function chat(userId, message) {
-  // Save user message to DB
-  await saveMessage(userId, "user", message);
-
-  // Load history + build personalized prompt in parallel
-  const [history, systemPrompt] = await Promise.all([
+  // Load history + build personalized prompt + get tier config in parallel
+  const [history, systemPrompt, { tier }] = await Promise.all([
     getHistory(userId, MAX_HISTORY),
     buildSystemPrompt(userId),
+    getUserMeta(userId),
   ]);
 
+  const tierConfig = getTierConfig(tier);
+
   let messages = history.map((m) => ({ role: m.role, content: m.content }));
-  let maxSteps = 3;
+  messages.push({ role: "user", content: message });
+  let maxSteps = MAX_TOOL_STEPS;
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
 
   // Loop to handle tool calls
   while (maxSteps > 0) {
     const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 1024,
+      model: tierConfig.model,
+      max_tokens: tierConfig.maxTokens,
       system: systemPrompt,
       messages,
       tools: TOOLS,
     });
 
+    totalInputTokens += response.usage?.input_tokens || 0;
+    totalOutputTokens += response.usage?.output_tokens || 0;
+
     // If no tool use, extract text and return
     if (response.stop_reason === "end_turn") {
       const text = extractText(response.content);
+      await saveMessage(userId, "user", message);
       await saveMessage(userId, "assistant", text);
-      return text;
+      return {
+        text,
+        inputTokens: totalInputTokens,
+        outputTokens: totalOutputTokens,
+      };
     }
 
     // Handle tool calls
@@ -290,7 +168,8 @@ export async function chat(userId, message) {
             }
             trackedEntries.add(key);
           }
-          const result = await executeTool(userId, block.name, block.input);
+          const result = await executeTool(userId, block.name, block.input)
+            .catch((err) => `Tool error: ${err.message}`);
           toolResults.push({
             type: "tool_result",
             tool_use_id: block.id,
@@ -307,12 +186,22 @@ export async function chat(userId, message) {
     const text =
       extractText(response.content) ||
       "Hmm, I got a bit lost there. What were we talking about?";
+    await saveMessage(userId, "user", message);
     await saveMessage(userId, "assistant", text);
-    return text;
+    return {
+      text,
+      inputTokens: totalInputTokens,
+      outputTokens: totalOutputTokens,
+    };
   }
 
   // If we ran out of steps
   const fallback = "I got stuck in a loop — let's try that again.";
+  await saveMessage(userId, "user", message);
   await saveMessage(userId, "assistant", fallback);
-  return fallback;
+  return {
+    text: fallback,
+    inputTokens: totalInputTokens,
+    outputTokens: totalOutputTokens,
+  };
 }

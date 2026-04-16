@@ -12,13 +12,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.69",
     "@anthropic-ai/sdk": "^0.89.0",
     "@libsql/client": "^0.17.2",
-    "ai": "^6.0.161",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "grammy": "^1.42.0",
-    "zod": "^4.3.6"
+    "grammy": "^1.42.0"
   }
 }
