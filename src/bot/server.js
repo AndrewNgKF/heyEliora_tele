@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import express from "express";
-import { webhookCallback } from "grammy";
 import { CRON_SECRET } from "../config/CONSTANTS.js";
 import { processDueReminders } from "../jobs/reminders.js";
 import path from "path";
@@ -27,6 +26,7 @@ export function createServer(bot) {
   const app = express();
   const telegramWebhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET || "";
 
+  app.use(express.json());
   app.use(express.static(WEB_DIR));
 
   app.get("/", (_req, res) => {
@@ -37,7 +37,7 @@ export function createServer(bot) {
     res.json({ status: "ok" });
   });
 
-  app.post("/cron/reminders", express.json(), async (req, res) => {
+  app.post("/cron/reminders", async (req, res) => {
     const authHeader = req.get("x-cron-secret");
 
     if (!CRON_SECRET || !safeEqual(authHeader, CRON_SECRET)) {
@@ -53,12 +53,21 @@ export function createServer(bot) {
     }
   });
 
-  app.use(
-    "/webhook",
-    webhookCallback(bot, "express", {
-      secretToken: telegramWebhookSecret || undefined,
-    }),
-  );
+  app.post("/webhook", async (req, res) => {
+    try {
+      if (telegramWebhookSecret) {
+        const token = req.header("x-telegram-bot-api-secret-token");
+        if (!safeEqual(token, telegramWebhookSecret)) {
+          return res.status(401).end();
+        }
+      }
+      await bot.handleUpdate(req.body);
+      res.status(200).end();
+    } catch (err) {
+      console.error("[eliora] webhook error:", err);
+      res.status(500).end();
+    }
+  });
 
   return app;
 }
