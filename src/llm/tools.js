@@ -1,5 +1,7 @@
 import {
   createReminder,
+  updateReminder,
+  cancelReminder,
   saveGoal,
   updateGoal,
   removeGoal,
@@ -132,6 +134,50 @@ export const TOOLS = [
     },
   },
   {
+    name: "update_reminder",
+    description:
+      "Update an existing reminder's time, content, or schedule type. Use this instead of creating a new reminder when the user wants to reschedule or edit one. Cancel the old + create new is wrong — use this tool instead.",
+    input_schema: {
+      type: "object",
+      properties: {
+        reminder_id: {
+          type: "string",
+          description: "The id of the existing reminder to update",
+        },
+        content: {
+          type: "string",
+          description: "Updated reminder text, if changed",
+        },
+        remind_at_utc: {
+          type: "string",
+          description:
+            "Updated ISO-8601 timestamp in UTC, if the time changed",
+        },
+        schedule_type: {
+          type: "string",
+          enum: ["one_time", "daily", "weekly"],
+          description: "Updated schedule type, if changed",
+        },
+      },
+      required: ["reminder_id"],
+    },
+  },
+  {
+    name: "cancel_reminder",
+    description:
+      "Cancel an existing reminder. Confirm with the user before calling this.",
+    input_schema: {
+      type: "object",
+      properties: {
+        reminder_id: {
+          type: "string",
+          description: "The id of the reminder to cancel",
+        },
+      },
+      required: ["reminder_id"],
+    },
+  },
+  {
     name: "set_timezone",
     description:
       "Set the user's timezone. Convert whatever they say (city, abbreviation, offset) to a valid IANA timezone like 'America/New_York' or 'Asia/Singapore'. Call silently when the user mentions where they live or their timezone.",
@@ -167,6 +213,18 @@ export async function executeTool(telegramId, toolName, input) {
         source: "user",
       });
       return `Reminder saved (id:${reminderId}) for ${input.remind_at_utc} (${input.schedule_type}): "${input.content}"`;
+    }
+    case "update_reminder": {
+      await updateReminder(telegramId, input.reminder_id, {
+        content: input.content,
+        runAt: input.remind_at_utc,
+        scheduleType: input.schedule_type,
+      });
+      return `Reminder ${input.reminder_id} updated.`;
+    }
+    case "cancel_reminder": {
+      await cancelReminder(telegramId, input.reminder_id);
+      return `Reminder ${input.reminder_id} cancelled.`;
     }
     case "save_goal":
       await saveGoal(telegramId, input.goal, input.baseline, input.target);

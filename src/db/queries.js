@@ -437,6 +437,40 @@ export async function cancelReminder(telegramId, reminderId) {
 }
 
 /**
+ * Update a reminder's time, content, or schedule type.
+ * @param {string} telegramId
+ * @param {string} reminderId
+ * @param {{ content?: string, runAt?: string, scheduleType?: string }} fields
+ */
+export async function updateReminder(telegramId, reminderId, fields) {
+  const sets = [];
+  const args = [];
+
+  if (fields.content) {
+    sets.push("content = ?");
+    args.push(fields.content);
+  }
+  if (fields.runAt) {
+    sets.push("run_at = ?");
+    args.push(fields.runAt);
+  }
+  if (fields.scheduleType) {
+    sets.push("schedule_type = ?");
+    args.push(fields.scheduleType);
+  }
+
+  if (sets.length === 0) return;
+
+  sets.push("updated_at = CURRENT_TIMESTAMP");
+  args.push(reminderId, telegramId);
+
+  await db.execute({
+    sql: `UPDATE reminders SET ${sets.join(", ")} WHERE id = ? AND telegram_id = ? AND status = 'active'`,
+    args,
+  });
+}
+
+/**
  * Get due reminders.
  * @param {string} nowIso
  * @param {number} [limit=50]
