@@ -27,7 +27,6 @@ export function createServer(bot) {
   const app = express();
   const telegramWebhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET || "";
 
-  app.use(express.json());
   app.use(express.static(WEB_DIR));
 
   app.get("/", (_req, res) => {
@@ -38,7 +37,7 @@ export function createServer(bot) {
     res.json({ status: "ok" });
   });
 
-  app.post("/cron/reminders", async (req, res) => {
+  app.post("/cron/reminders", express.json(), async (req, res) => {
     const authHeader = req.get("x-cron-secret");
 
     if (!CRON_SECRET || !safeEqual(authHeader, CRON_SECRET)) {

@@ -23,6 +23,7 @@ if (!process.env.VERCEL) {
       console.log(`[eliora] webhook server running on port ${PORT}`),
     );
   } else {
+    // No webhook URL - start in long polling mode
     await bot.api.deleteWebhook();
     console.log("[eliora] starting in long polling mode...");
     bot.start({
