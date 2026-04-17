@@ -150,8 +150,7 @@ export const TOOLS = [
         },
         remind_at_utc: {
           type: "string",
-          description:
-            "Updated ISO-8601 timestamp in UTC, if the time changed",
+          description: "Updated ISO-8601 timestamp in UTC, if the time changed",
         },
         schedule_type: {
           type: "string",

@@ -1,195 +1,297 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>OG Image — heyEliora</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Inter:wght@400;800;900&display=swap" rel="stylesheet">
-  <style>
-    /* Open this file in a browser, screenshot the card at 1200×630 */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+  <head>
+    <meta charset="UTF-8" />
+    <title>OG Image — heyEliora</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Inter:wght@400;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Open this file in a browser, screenshot the card at 1200×630 */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: #e8e3da;
-      font-family: "Inter", -apple-system, sans-serif;
-    }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: #e8e3da;
+        font-family: "Inter", -apple-system, sans-serif;
+      }
 
-    .card {
-      width: 1200px;
-      height: 630px;
-      background: #fffdf9;
-      border-radius: 0;
-      display: flex;
-      overflow: hidden;
-      position: relative;
-    }
+      .card {
+        width: 1200px;
+        height: 630px;
+        background: #fffdf9;
+        display: flex;
+        align-items: center;
+        padding: 48px 56px;
+        gap: 48px;
+      }
 
-    /* Left — main content */
-    .left {
-      flex: 1;
-      padding: 72px 64px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
+      /* Left — main content */
+      .left {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
 
-    .brand {
-      font-size: 22px;
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      margin-bottom: 36px;
-      color: #1a1a1a;
-    }
-    .brand span { color: #e85d3a; }
+      .brand {
+        font-size: 20px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        margin-bottom: 28px;
+        color: #1a1a1a;
+      }
+      .brand span { color: #e85d3a; }
 
-    h1 {
-      font-size: 58px;
-      font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -0.035em;
-      color: #1a1a1a;
-      margin-bottom: 24px;
-    }
-    h1 em {
-      font-style: normal;
-      color: #e85d3a;
-    }
+      h1 {
+        font-size: 54px;
+        font-weight: 900;
+        line-height: 1.08;
+        letter-spacing: -0.035em;
+        color: #1a1a1a;
+        margin-bottom: 20px;
+      }
+      h1 em {
+        font-style: normal;
+        color: #e85d3a;
+      }
 
-    .subtitle {
-      font-size: 22px;
-      line-height: 1.5;
-      color: #444;
-      max-width: 460px;
-    }
+      .subtitle {
+        font-size: 20px;
+        line-height: 1.5;
+        color: #444;
+        max-width: 440px;
+        margin-bottom: 32px;
+      }
 
-    .badge {
-      margin-top: 36px;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: #1a1a1a;
-      color: #fff;
-      padding: 14px 28px;
-      border-radius: 50px;
-      font-weight: 800;
-      font-size: 18px;
-      width: fit-content;
-    }
+      .badges {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
 
-    .badge svg {
-      width: 22px;
-      height: 22px;
-    }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: 800;
+        font-size: 16px;
+      }
 
-    /* Right — chat mockup */
-    .right {
-      width: 420px;
-      background: #fef6ec;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 48px 36px;
-    }
+      .badge-primary {
+        background: #e85d3a;
+        color: #fff;
+      }
 
-    .chat {
-      background: #fff;
-      border: 2px solid #e8e3da;
-      border-radius: 16px;
-      padding: 24px;
-      width: 100%;
-      box-shadow: 4px 4px 0 #e8e3da;
-    }
+      .badge-dark {
+        background: #1a1a1a;
+        color: #fff;
+      }
 
-    .chat-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 15px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #e8e3da;
-      margin-bottom: 16px;
-    }
+      .open-source {
+        margin-top: 16px;
+        font-size: 14px;
+        color: #777;
+      }
 
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #e85d3a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-family: "Caveat", cursive;
-      font-weight: 700;
-      font-size: 18px;
-    }
+      /* Right — Telegram phone mockup */
+      .right {
+        width: 340px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
 
-    .bubble {
-      padding: 10px 14px;
-      border-radius: 16px;
-      margin-bottom: 10px;
-      font-size: 13.5px;
-      line-height: 1.45;
-      max-width: 88%;
-    }
+      .tg-phone {
+        background: #c8d9eb;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08);
+        border: 3px solid #d1d5db;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        max-height: 490px;
+      }
 
-    .bubble-user {
-      background: #d8f0dd;
-      margin-left: auto;
-      border-bottom-right-radius: 4px;
-    }
+      .tg-top-bar {
+        background: #5b9bd5;
+        color: #fff;
+        padding: 14px 16px 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
 
-    .bubble-bot {
-      background: #fef6ec;
-      border-bottom-left-radius: 4px;
-    }
+      .tg-back {
+        font-size: 1.5rem;
+        font-weight: 300;
+        opacity: 0.9;
+      }
 
-    .bubble-bot strong { color: #e85d3a; }
+      .tg-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
 
-    /* Annotation */
-    .annotation {
-      font-family: "Caveat", cursive;
-      font-size: 20px;
-      color: #e85d3a;
-      text-align: center;
-      margin-top: 12px;
-      transform: rotate(-1.5deg);
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="left">
-      <div class="brand">hey<span>Eliora</span></div>
-      <h1>Every AI knows<br>the world.<br><em>Eliora knows you.</em></h1>
-      <p class="subtitle">A personal AI assistant that lives in Telegram. She remembers your goals and keeps you accountable.</p>
-      <div class="badge">
-        <!-- Telegram icon -->
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 1 0 24 12.056A12.01 12.01 0 0 0 11.944 0Zm5.573 7.26l-1.97 9.29c-.145.658-.537.818-1.084.508l-3-2.21l-1.446 1.394a.759.759 0 0 1-.6.295l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.869 4.326l-2.96-.924c-.643-.203-.657-.643.136-.953l11.566-4.458c.537-.194 1.006.131.832.943Z"/></svg>
-        Open in Telegram
+      .tg-name {
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .tg-status {
+        font-size: 11px;
+        opacity: 0.85;
+      }
+
+      .tg-messages {
+        flex: 1;
+        padding: 12px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        overflow: hidden;
+      }
+
+      .tg-bubble {
+        max-width: 84%;
+        padding: 8px 12px 4px;
+        border-radius: 12px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .tg-bubble p { margin: 0 0 4px; }
+      .tg-bubble p:last-of-type { margin-bottom: 0; }
+
+      .tg-in {
+        background: #fff;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+      }
+
+      .tg-out {
+        background: #eeffde;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+      }
+
+      .tg-time {
+        display: block;
+        text-align: right;
+        font-size: 10px;
+        color: #8e9a8e;
+        margin-top: 2px;
+        padding-bottom: 2px;
+      }
+
+      .tg-in .tg-time { color: #a0a8b4; }
+
+      .tg-check {
+        color: #4fae4e;
+        font-size: 9px;
+      }
+
+      .tg-input-bar {
+        background: #fff;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+      }
+
+      .tg-input-text {
+        flex: 1;
+        background: #f4f4f5;
+        padding: 8px 14px;
+        border-radius: 20px;
+        color: #999;
+        font-size: 13px;
+      }
+
+      .annotation {
+        font-family: "Caveat", cursive;
+        font-size: 18px;
+        color: #e85d3a;
+        text-align: center;
+        margin-top: 10px;
+        transform: rotate(-1.5deg);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="left">
+        <div class="brand">hey<span>Eliora</span></div>
+        <h1>Every AI knows<br>the world.<br><em>Eliora knows you.</em></h1>
+        <p class="subtitle">A personal AI assistant that lives in Telegram. She remembers your goals and keeps you accountable.</p>
+        <div class="badges">
+          <div class="badge badge-primary">Try free on Telegram →</div>
+          <div class="badge badge-dark">Go Pro — $9/mo</div>
+        </div>
+        <p class="open-source">100% open source — audit the code or self-host it yourself.</p>
       </div>
-    </div>
-    <div class="right">
-      <div>
-        <div class="chat">
-          <div class="chat-header">
-            <div class="avatar">E</div>
-            Eliora
+      <div class="right">
+        <div class="tg-phone">
+          <div class="tg-top-bar">
+            <span class="tg-back">‹</span>
+            <img class="tg-avatar" src="eliora-avatar.png" alt="Eliora">
+            <div>
+              <div class="tg-name">Eliora</div>
+              <div class="tg-status">online</div>
+            </div>
           </div>
-          <div class="bubble bubble-user">I finished the landing page but it took all week 😅</div>
-          <div class="bubble bubble-bot">Nice progress! But your target was <strong>"MVP by June 1"</strong> and you spent 8 days on the page. Auth still needs work.<br><br>Switch to auth tomorrow?</div>
-          <div class="bubble bubble-user">…you're right.</div>
-          <div class="bubble bubble-bot">That's the pattern — you polish fun stuff when a hard task is next. Auth tomorrow. I'll check in.</div>
+          <div class="tg-messages">
+            <div class="tg-bubble tg-out">
+              <p>I finished the landing page but it took all week 😅</p>
+              <span class="tg-time">2:32 PM <span class="tg-check">✓✓</span></span>
+            </div>
+            <div class="tg-bubble tg-in">
+              <p>Nice progress! But your target was <strong>"MVP by June 1"</strong> and you spent 8 days on the page. Auth still needs work.</p>
+              <p>Switch to auth tomorrow?</p>
+              <span class="tg-time">2:32 PM</span>
+            </div>
+            <div class="tg-bubble tg-out">
+              <p>…you're right.</p>
+              <span class="tg-time">2:33 PM <span class="tg-check">✓✓</span></span>
+            </div>
+            <div class="tg-bubble tg-in">
+              <p>That's the pattern — you polish fun stuff when a hard task is next. Auth tomorrow. I'll check in. 💪</p>
+              <span class="tg-time">2:33 PM</span>
+            </div>
+          </div>
+          <div class="tg-input-bar">
+            <span>📎</span>
+            <div class="tg-input-text">Message</div>
+            <span>🎤</span>
+          </div>
         </div>
         <div class="annotation">↑ she actually remembers you</div>
       </div>
+        </div>
+      </div>
     </div>
-  </div>
-</body>
+  </body>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>

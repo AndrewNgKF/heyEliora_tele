@@ -11,12 +11,12 @@ export const TIERS = {
     maxTokens: 512,
   },
   lite: {
-    dailyLimit: parseInt(process.env.LITE_DAILY_LIMIT || "50", 10),
+    dailyLimit: parseInt(process.env.LITE_DAILY_LIMIT || "30", 10),
     model: process.env.LITE_MODEL || "claude-haiku-4-5-20251001",
     maxTokens: 1024,
   },
   pro: {
-    dailyLimit: parseInt(process.env.PRO_DAILY_LIMIT || "200", 10),
+    dailyLimit: parseInt(process.env.PRO_DAILY_LIMIT || "100", 10),
     model: process.env.PRO_MODEL || "claude-sonnet-4-20250514",
     maxTokens: 1024,
   },

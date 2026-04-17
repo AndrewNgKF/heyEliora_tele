@@ -42,6 +42,7 @@ commands.command("start", async (ctx) => {
       `🎯 *Goals* — I'll help you define them clearly and track your progress\n` +
       `📊 *Accountability* — honest check-ins based on what you're actually doing\n` +
       `🧠 *Memory* — I remember your goals, preferences, and context\n\n` +
+      `⏰ *Reminders* — I'll nudge you about important stuff at the right time\n\n` +
       `Just talk to me like you would a friend. I'll figure out the rest.`,
     { reply_markup: keyboard },
   );

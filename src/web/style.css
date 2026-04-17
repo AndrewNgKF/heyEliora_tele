@@ -205,11 +205,73 @@ nav {
 .hero-text .lead {
   max-width: 520px;
   font-size: 1.25rem;
-  margin-bottom: 44px;
+  margin-bottom: 36px;
 }
 
-.hero-visual .chat-demo {
-  margin: 0;
+/* Hero action buttons */
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cta-pro {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 1.05rem;
+  font-weight: 800;
+  padding: 16px 34px;
+  border-radius: 50px;
+  background: var(--text);
+  color: #fff;
+  text-decoration: none;
+  transition:
+    opacity 0.15s,
+    transform 0.1s;
+}
+
+.cta-pro:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.cta-secondary {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 14px 28px;
+  border-radius: 50px;
+  border: 2px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.cta-secondary:hover {
+  border-color: var(--text);
+  text-decoration: none;
+}
+
+.hero-meta {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.hero-meta a {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 3px;
+}
+
+.hero-meta a:hover {
+  color: var(--text);
 }
 
 .hero-annotation {
@@ -220,6 +282,160 @@ nav {
   margin-top: 16px;
   text-align: center;
   transform: rotate(-1.5deg);
+}
+
+/* ---- Telegram-style chat mockup ---- */
+.tg-phone {
+  background: #fff;
+  border-radius: 28px;
+  border: 3px solid #d1d5db;
+  overflow: hidden;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+  max-width: 380px;
+}
+
+.tg-status-bar {
+  background: #5b9bd5;
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 10px 20px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tg-status-icons {
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+}
+
+.tg-top-bar {
+  background: #5b9bd5;
+  color: #fff;
+  padding: 10px 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tg-back {
+  font-size: 1.6rem;
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+.tg-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.tg-contact-name {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.tg-contact-status {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.tg-messages {
+  background: #c8d9eb;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 280px;
+}
+
+.tg-bubble {
+  max-width: 82%;
+  padding: 8px 12px 4px;
+  border-radius: 12px;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  position: relative;
+}
+
+.tg-bubble p {
+  margin: 0 0 4px;
+}
+
+.tg-bubble p:last-of-type {
+  margin-bottom: 0;
+}
+
+.tg-bubble strong {
+  color: inherit;
+}
+
+.tg-in {
+  background: #fff;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
+}
+
+.tg-out {
+  background: #eeffde;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
+}
+
+.tg-time {
+  display: block;
+  text-align: right;
+  font-size: 0.68rem;
+  color: #8e9a8e;
+  margin-top: 2px;
+  padding-bottom: 2px;
+}
+
+.tg-in .tg-time {
+  color: #a0a8b4;
+}
+
+.tg-check {
+  color: #4fae4e;
+  font-size: 0.6rem;
+}
+
+.tg-input-bar {
+  background: #fff;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.tg-attach {
+  font-size: 1.1rem;
+  opacity: 0.5;
+}
+
+.tg-input {
+  flex: 1;
+  background: #f4f4f5;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.tg-mic {
+  font-size: 1.1rem;
+  opacity: 0.5;
 }
 
 /* ---- CTA buttons ---- */
@@ -271,16 +487,6 @@ nav {
   box-shadow: 4px 4px 0 var(--border);
 }
 
-.letter::before {
-  content: "✉";
-  position: absolute;
-  top: -18px;
-  left: 28px;
-  font-size: 1.8rem;
-  background: var(--bg-warm);
-  padding: 0 8px;
-}
-
 .letter p {
   margin-bottom: 1em;
 }
@@ -310,87 +516,6 @@ nav {
   font-size: 0.85rem;
   color: var(--text-muted);
   margin-top: 2px;
-}
-
-/* ---- Chat mockup ---- */
-.chat-section h2 {
-  text-align: center;
-}
-
-.chat-section .lead {
-  text-align: center;
-  max-width: 460px;
-  margin: 12px auto 0;
-}
-
-.chat-demo {
-  background: var(--bg-card);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: 28px;
-  max-width: 480px;
-  margin: 44px auto 0;
-  box-shadow: 4px 4px 0 var(--border);
-}
-
-.chat-header {
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 0.95rem;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-family: var(--font-hand);
-  font-weight: 700;
-  font-size: 1.2rem;
-}
-
-.bubble {
-  padding: 12px 16px;
-  border-radius: 18px;
-  margin-bottom: 12px;
-  max-width: 85%;
-  font-family: var(--font-ui);
-  font-size: 0.93rem;
-  line-height: 1.5;
-}
-
-.bubble-user {
-  background: #d8f0dd;
-  margin-left: auto;
-  border-bottom-right-radius: 4px;
-}
-
-.bubble-bot {
-  background: var(--bg-warm);
-  border-bottom-left-radius: 4px;
-}
-
-.bubble-bot strong {
-  color: var(--accent);
-}
-
-.chat-caption {
-  font-family: var(--font-hand);
-  font-size: 1.25rem;
-  color: var(--accent);
-  text-align: center;
-  margin-top: 24px;
-  transform: rotate(-1deg);
 }
 
 /* ---- The Pitch (replaces numbered features) ---- */
@@ -500,6 +625,12 @@ nav {
   border-radius: var(--radius);
   padding: 36px 28px;
   box-shadow: 4px 4px 0 var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.plan ul {
+  flex: 1;
 }
 
 .plan-featured {
@@ -754,11 +885,15 @@ footer a:hover {
     margin-left: auto;
     margin-right: auto;
   }
+  .hero-actions {
+    justify-content: center;
+  }
+  .tg-phone {
+    max-width: 340px;
+    margin: 0 auto;
+  }
   .letter {
     padding: 32px 24px;
-  }
-  .chat-demo {
-    margin: 32px auto 0;
   }
   .pricing-grid {
     grid-template-columns: 1fr;
