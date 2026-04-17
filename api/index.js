@@ -2,44 +2,15 @@ import { bot } from "../src/bot/index.js";
 import { createServer } from "../src/bot/server.js";
 import { initDb } from "../src/db/index.js";
 
-let appPromise;
-let webhookInitPromise;
+// Vercel serverless adapter — reuses the same Express app from src/
+// Needed because Vercel cannot do app.listen(), it needs a handler(req, res)
 
-async function getApp() {
-  if (!appPromise) {
-    appPromise = (async () => {
-      await initDb();
-      return createServer(bot);
-    })();
-  }
-  return appPromise;
-}
+await initDb();
 
-async function ensureWebhook() {
-  if (!process.env.WEBHOOK_URL) return;
+const app = createServer(bot);
 
-  if (!webhookInitPromise) {
-    webhookInitPromise = bot.api
-      .setWebhook(`${process.env.WEBHOOK_URL}/webhook`, {
-        secret_token: process.env.TELEGRAM_WEBHOOK_SECRET || undefined,
-      })
-      .catch((err) => {
-        // Allow retry on next invocation if webhook setup fails.
-        webhookInitPromise = undefined;
-        throw err;
-      });
-  }
+await bot.api.setWebhook(`${process.env.WEBHOOK_URL}/webhook`, {
+  secret_token: process.env.TELEGRAM_WEBHOOK_SECRET || undefined,
+});
 
-  await webhookInitPromise;
-}
-
-export default async function handler(req, res) {
-  try {
-    await ensureWebhook();
-    const app = await getApp();
-    return app(req, res);
-  } catch (err) {
-    console.error("[eliora] vercel handler error:", err);
-    return res.status(500).json({ ok: false, error: "internal_error" });
-  }
-}
+export default app;
