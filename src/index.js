@@ -4,6 +4,7 @@ import { createServer } from "./bot/server.js";
 import { initDb } from "./db/index.js";
 
 await initDb();
+await bot.init();
 
 const app = createServer(bot);
 
