@@ -61,10 +61,14 @@ export const HOWTO_TEXT =
   `*Here's what I can do:*\n\n` +
   `🎯 *Goals* — Tell me what you're working toward. I'll ask questions to make it specific, then track it.\n` +
   `📝 *Progress* — Just tell me what you did (or didn't do). I'll log it against your goals automatically.\n` +
+  `⏰ *Reminders* — Ask for reminders, use /remind or conversationally.\n` +
   `📊 *Check-ins* — /whatsup gives you an honest accountability report.\n` +
   `🗣 *Preferences* — Tell me how you like to work — I'll remember.\n` +
   `🧹 *Fresh start* — /forget clears our conversation history.\n\n` +
   `No commands needed — just talk to me naturally.`;
+
+/** Shared secret for cron endpoint authentication */
+export const CRON_SECRET = process.env.CRON_SECRET || "";
 
 /** Telegram command menu entries */
 export const COMMANDS = [
@@ -72,6 +76,8 @@ export const COMMANDS = [
   { command: "profile", description: "Your profile at a glance" },
   { command: "goals", description: "View your goals" },
   { command: "progress", description: "Recent progress entries" },
+  { command: "remind", description: "Set a reminder via chat" },
+  { command: "reminders", description: "View active reminders" },
   { command: "whatsup", description: "Accountability check-in" },
   { command: "usage", description: "Today's usage + limits" },
   { command: "timezone", description: "Set your timezone" },

@@ -1,4 +1,5 @@
 import {
+  createReminder,
   saveGoal,
   updateGoal,
   removeGoal,
@@ -106,6 +107,31 @@ export const TOOLS = [
     },
   },
   {
+    name: "set_reminder",
+    description:
+      "Create a reminder when the user asks to be reminded at a specific time. Support one-time, daily, and weekly reminders. Ask a follow-up if the timing or recurrence is ambiguous. Convert the reminder time to UTC before calling this tool.",
+    input_schema: {
+      type: "object",
+      properties: {
+        content: {
+          type: "string",
+          description: "What the user wants to be reminded about",
+        },
+        remind_at_utc: {
+          type: "string",
+          description:
+            "ISO-8601 timestamp in UTC, e.g. 2026-04-18T14:30:00.000Z",
+        },
+        schedule_type: {
+          type: "string",
+          enum: ["one_time", "daily", "weekly"],
+          description: "Whether this reminder repeats",
+        },
+      },
+      required: ["content", "remind_at_utc", "schedule_type"],
+    },
+  },
+  {
     name: "set_timezone",
     description:
       "Set the user's timezone. Convert whatever they say (city, abbreviation, offset) to a valid IANA timezone like 'America/New_York' or 'Asia/Singapore'. Call silently when the user mentions where they live or their timezone.",
@@ -132,6 +158,16 @@ export const TOOLS = [
  */
 export async function executeTool(telegramId, toolName, input) {
   switch (toolName) {
+    case "set_reminder": {
+      const reminderId = await createReminder(telegramId, {
+        content: input.content,
+        runAt: input.remind_at_utc,
+        scheduleType: input.schedule_type,
+        kind: "reminder",
+        source: "user",
+      });
+      return `Reminder saved (id:${reminderId}) for ${input.remind_at_utc} (${input.schedule_type}): "${input.content}"`;
+    }
     case "save_goal":
       await saveGoal(telegramId, input.goal, input.baseline, input.target);
       return `Goal saved: "${input.goal}"${input.baseline ? ` (baseline: ${input.baseline})` : ""}${input.target ? ` (target: ${input.target})` : ""}`;

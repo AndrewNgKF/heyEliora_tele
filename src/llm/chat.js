@@ -5,6 +5,7 @@ import {
   getGoals,
   getPreferences,
   getRecentProgress,
+  listReminders,
   getUserMeta,
 } from "../db/queries.js";
 import {
@@ -31,6 +32,13 @@ You're on Telegram. Use *bold* (single asterisk), _italic_ (underscores), and \`
 ## Preferences
 When a user mentions work style, tone, or scheduling needs — save_preference silently.
 
+## Reminders
+- When a user asks to be reminded about something, use set_reminder.
+- Support one-time, daily, and weekly reminders.
+- If timing or recurrence is ambiguous, ask a brief follow-up before creating it.
+- Avoid creating duplicate reminders when one already covers the same intent.
+- If the user's timezone is UTC (the default — meaning they haven't set one yet) and they mention a specific time, ask once, casually: "Quick one — what timezone are you in so I get the time right?" Then set the reminder after they reply. Don't ask if the timezone is already set.
+
 ## Progress tracking
 - When the user mentions goal-relevant activity, call track_progress silently. Positive and negative.
 - Only goal-relevant activity. Always use the correct goal_id. Brief factual note.
@@ -42,16 +50,26 @@ You know the user's goals, baselines, targets, and recent entries. Reference the
 /**
  * Build a personalized system prompt from user data
  * @param {string} telegramId
+ * @param {string} timezone - IANA timezone for the user (e.g. "Asia/Singapore")
  * @returns {Promise<string>}
  */
-async function buildSystemPrompt(telegramId) {
-  const [goals, prefs, entries] = await Promise.all([
+async function buildSystemPrompt(telegramId, timezone = "UTC") {
+  const [goals, prefs, entries, reminders] = await Promise.all([
     getGoals(telegramId),
     getPreferences(telegramId),
     getRecentProgress(telegramId),
+    listReminders(telegramId, 5),
   ]);
 
-  let prompt = BASE_PROMPT;
+  const now = new Date().toLocaleString("en-US", {
+    timeZone: timezone,
+    hour12: false,
+    dateStyle: "full",
+    timeStyle: "short",
+  });
+  let prompt =
+    BASE_PROMPT +
+    `\n\nUser timezone: ${timezone}. Current local time for the user: ${now}. Always convert user-mentioned times to UTC before calling set_reminder.`;
 
   if (goals.length > 0) {
     const goalList = goals
@@ -70,6 +88,16 @@ async function buildSystemPrompt(telegramId) {
       .map((e) => `- [${e.created_at}] (goal: ${e.goal}) ${e.content}`)
       .join("\n");
     prompt += `\n\nRecent progress entries:\n${entryList}\nUse these to give informed accountability feedback. Notice patterns, celebrate streaks, call out gaps.`;
+  }
+
+  if (reminders.length > 0) {
+    const reminderList = reminders
+      .map(
+        (r) =>
+          `- [id:${r.id}] ${r.content} | next: ${r.runAt} | type: ${r.scheduleType} | source: ${r.source}`,
+      )
+      .join("\n");
+    prompt += `\n\nScheduled reminders and nudges:\n${reminderList}\nAvoid duplicating an existing reminder if one already covers the same intent.`;
   }
 
   if (prefs) {
@@ -106,11 +134,11 @@ function extractText(content) {
  */
 export async function chat(userId, message) {
   // Load history + build personalized prompt + get tier config in parallel
-  const [history, systemPrompt, { tier }] = await Promise.all([
+  const [history, { tier, timezone }] = await Promise.all([
     getHistory(userId, MAX_HISTORY),
-    buildSystemPrompt(userId),
     getUserMeta(userId),
   ]);
+  const systemPrompt = await buildSystemPrompt(userId, timezone);
 
   const tierConfig = getTierConfig(tier);
 

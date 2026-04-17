@@ -357,3 +357,160 @@ export async function incrementUsage(
     ],
   });
 }
+
+// --- Reminders ---
+
+/**
+ * Create a reminder or scheduled system nudge.
+ * @param {string} telegramId
+ * @param {{
+ *   content: string,
+ *   runAt: string,
+ *   scheduleType?: "one_time"|"daily"|"weekly",
+ *   kind?: string,
+ *   source?: string,
+ *   goalId?: string|null,
+ * }} reminder
+ * @returns {Promise<string>}
+ */
+export async function createReminder(telegramId, reminder) {
+  const id = generateId();
+  await db.execute({
+    sql: `INSERT INTO reminders (
+            id, telegram_id, kind, source, content, schedule_type,
+            run_at, goal_id
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      id,
+      telegramId,
+      reminder.kind || "reminder",
+      reminder.source || "user",
+      reminder.content,
+      reminder.scheduleType || "one_time",
+      reminder.runAt,
+      reminder.goalId || null,
+    ],
+  });
+  return id;
+}
+
+/**
+ * List reminders for a user.
+ * @param {string} telegramId
+ * @param {number} [limit=20]
+ */
+export async function listReminders(telegramId, limit = 20) {
+  const result = await db.execute({
+    sql: `SELECT id, kind, source, content, schedule_type, run_at, goal_id, status, sent_count
+          FROM reminders
+          WHERE telegram_id = ? AND status IN ('active', 'processing')
+          ORDER BY run_at ASC
+          LIMIT ?`,
+    args: [telegramId, limit],
+  });
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    kind: row.kind,
+    source: row.source,
+    content: row.content,
+    scheduleType: row.schedule_type,
+    runAt: row.run_at,
+    goalId: row.goal_id || null,
+    status: row.status,
+    sentCount: Number(row.sent_count || 0),
+  }));
+}
+
+/**
+ * Cancel a reminder for a user.
+ * @param {string} telegramId
+ * @param {string} reminderId
+ */
+export async function cancelReminder(telegramId, reminderId) {
+  await db.execute({
+    sql: `UPDATE reminders
+          SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
+          WHERE id = ? AND telegram_id = ? AND status IN ('active', 'processing')`,
+    args: [reminderId, telegramId],
+  });
+}
+
+/**
+ * Get due reminders.
+ * @param {string} nowIso
+ * @param {number} [limit=50]
+ */
+export async function getDueReminders(nowIso, limit = 50) {
+  const result = await db.execute({
+    sql: `SELECT id, telegram_id, kind, source, content, schedule_type, run_at, goal_id, sent_count
+          FROM reminders
+          WHERE status = 'active' AND run_at <= ?
+          ORDER BY run_at ASC
+          LIMIT ?`,
+    args: [nowIso, limit],
+  });
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    telegramId: row.telegram_id,
+    kind: row.kind,
+    source: row.source,
+    content: row.content,
+    scheduleType: row.schedule_type,
+    runAt: row.run_at,
+    goalId: row.goal_id || null,
+    sentCount: Number(row.sent_count || 0),
+  }));
+}
+
+/**
+ * Claim a reminder before sending so concurrent cron runs don't duplicate it.
+ * @param {string} reminderId
+ * @param {string} nowIso
+ * @returns {Promise<boolean>}
+ */
+export async function claimReminder(reminderId, nowIso) {
+  const result = await db.execute({
+    sql: `UPDATE reminders
+          SET status = 'processing', updated_at = CURRENT_TIMESTAMP, last_error = NULL
+          WHERE id = ? AND status = 'active' AND run_at <= ?`,
+    args: [reminderId, nowIso],
+  });
+  return Number(result.rowsAffected || 0) > 0;
+}
+
+/**
+ * Mark a reminder as delivered and optionally schedule the next run.
+ * @param {string} reminderId
+ * @param {string|null} nextRunAt
+ */
+export async function completeReminder(reminderId, nextRunAt) {
+  await db.execute({
+    sql: `UPDATE reminders
+          SET status = CASE WHEN ? IS NULL THEN 'sent' ELSE 'active' END,
+              run_at = COALESCE(?, run_at),
+              last_sent_at = CURRENT_TIMESTAMP,
+              sent_count = sent_count + 1,
+              updated_at = CURRENT_TIMESTAMP,
+              last_error = NULL
+          WHERE id = ?`,
+    args: [nextRunAt, nextRunAt, reminderId],
+  });
+}
+
+/**
+ * Return a claimed reminder back to the queue after a send failure.
+ * @param {string} reminderId
+ * @param {string} errorMessage
+ */
+export async function failReminder(reminderId, errorMessage) {
+  await db.execute({
+    sql: `UPDATE reminders
+          SET status = 'active',
+              last_error = ?,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?`,
+    args: [errorMessage.slice(0, 500), reminderId],
+  });
+}

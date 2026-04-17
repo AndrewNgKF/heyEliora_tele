@@ -3,6 +3,8 @@ import { chat } from "../llm/chat.js";
 import {
   clearHistory,
   getGoals,
+  listReminders,
+  cancelReminder,
   removeGoal,
   getPreferences,
   getRecentProgress,
@@ -15,7 +17,11 @@ import {
   TIMEZONE_OPTIONS,
   HOWTO_TEXT,
 } from "../config/CONSTANTS.js";
-import { formatGoalList, performCheckIn } from "./helpers.js";
+import {
+  formatGoalList,
+  formatReminderList,
+  performCheckIn,
+} from "./helpers.js";
 
 export const commands = new Composer();
 
@@ -142,6 +148,68 @@ commands.command("progress", async (ctx) => {
     }
   }
   await ctx.reply(text);
+});
+
+// /remind
+commands.command("remind", async (ctx) => {
+  const text = ctx.message.text.replace("/remind", "").trim();
+  if (!text) {
+    await ctx.reply(
+      "Tell me what and when. Examples: /remind me to stretch at 3pm tomorrow, /remind me every day at 9am to plan, /remind me every Monday at 8am to review goals",
+    );
+    return;
+  }
+
+  const usage = await checkUsage(ctx.userId);
+  if (!usage.allowed) {
+    await ctx.reply(
+      `You've hit your daily limit of ${usage.limit} messages. Resets at midnight in your timezone.`,
+    );
+    return;
+  }
+
+  try {
+    const {
+      text: reply,
+      inputTokens,
+      outputTokens,
+    } = await chat(ctx.userId, `Please help me set this reminder: ${text}`);
+    await incrementUsage(ctx.userId, inputTokens, outputTokens);
+    await ctx.replyMd(reply);
+  } catch (err) {
+    console.error("[eliora] /remind error:", err);
+    await ctx.reply("Sorry, something went wrong. Try again in a moment.");
+  }
+});
+
+// /reminders
+commands.command("reminders", async (ctx) => {
+  const text = ctx.message.text.replace("/reminders", "").trim();
+
+  if (text.startsWith("cancel ")) {
+    const reminderId = text.replace("cancel ", "").trim();
+    if (!reminderId) {
+      await ctx.reply("Usage: /reminders cancel <id>");
+      return;
+    }
+    await cancelReminder(ctx.userId, reminderId);
+    await ctx.reply("Reminder cancelled.");
+    return;
+  }
+
+  const reminders = await listReminders(ctx.userId, 20);
+  if (reminders.length === 0) {
+    await ctx.reply(
+      "You don't have any active reminders. Ask me naturally, or use /remind to set one.",
+    );
+    return;
+  }
+
+  const { timezone } = await getUserMeta(ctx.userId);
+
+  await ctx.reply(
+    `Your active reminders:\n\n${formatReminderList(reminders, timezone)}\n\nCancel one with: /reminders cancel <id>`,
+  );
 });
 
 // /timezone

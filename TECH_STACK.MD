@@ -29,7 +29,7 @@ src/
 ├── index.js          # Entry point — boots DB, picks webhook or polling
 ├── bot/
 │   ├── index.js      # Wires the bot: middleware → commands → buttons
-│   ├── server.js     # Express webhook endpoint + health check
+│   ├── server.js     # Express webhook endpoint + health check + protected cron endpoint
 │   ├── commands.js   # Slash commands (/start, /goals, etc) + free-text catch-all
 │   ├── callbacks.js  # Inline button tap handlers (Set a goal 🎯, etc)
 │   ├── middleware.js  # Per-request setup: identify user, sync to DB, add replyMd
@@ -39,6 +39,8 @@ src/
 ├── db/
 │   ├── index.js      # Turso connection + table creation (CREATE IF NOT EXISTS)
 │   └── queries.js    # Every DB operation as a named function
+├── jobs/
+│   └── reminders.js  # External-cron-triggered reminder processor + recurring rescheduling
 ├── llm/
 │   ├── chat.js       # Conversation loop: history → system prompt → Claude → tool calls → response
 │   └── tools.js      # Tool definitions (what Claude can do) + execution (what actually happens)
@@ -57,16 +59,17 @@ src/
 
 ## Database Schema
 
-Six tables, all in Turso:
+Seven tables, all in Turso:
 
-| Table          | Purpose                                       |
-| -------------- | --------------------------------------------- |
-| `users`        | Telegram ID, name, tier, timezone             |
-| `messages`     | Conversation history (for LLM context window) |
-| `goals`        | User goals with baseline + target             |
-| `preferences`  | Work style, tone, schedule prefs              |
-| `goal_entries` | Progress logs tied to specific goals          |
-| `daily_usage`  | Message counts + token usage per user per day |
+| Table          | Purpose                                          |
+| -------------- | ------------------------------------------------ |
+| `users`        | Telegram ID, name, tier, timezone                |
+| `messages`     | Conversation history (for LLM context window)    |
+| `goals`        | User goals with baseline + target                |
+| `preferences`  | Work style, tone, schedule prefs                 |
+| `goal_entries` | Progress logs tied to specific goals             |
+| `daily_usage`  | Message counts + token usage per user per day    |
+| `reminders`    | One-time + recurring reminders and system nudges |
 
 ## Key Design Decisions
 
@@ -75,17 +78,67 @@ Six tables, all in Turso:
 - **Composers, not one big file:** grammY's Composer pattern splits handlers into separate files (commands, buttons) that get `bot.use()`'d in. Each file owns its domain. Middleware runs first, so handlers get `ctx.userId`, `ctx.replyMd()` for free.
 - **Tier-based usage limits without cron:** Daily reset is lazy — `checkUsage()` compares against today's date in the user's timezone. No scheduled job, no Redis. Just a date comparison on each message.
 - **Save messages after success, not before:** User message is only persisted to history after Claude responds successfully. Prevents malformed alternating-role sequences if the API fails mid-request.
+- **External cron, not always-on workers:** Vercel Hobby cron is too imprecise for reminders. A protected `/cron/reminders` endpoint is triggered by an external scheduler, while Turso remains the source of truth.
+
+## Deploy Setup
+
+### Required environment variables
+
+```
+BOT_TOKEN=...
+ANTHROPIC_API_KEY=...
+WEBHOOK_URL=https://your-domain.com
+TELEGRAM_WEBHOOK_SECRET=...
+TURSO_URL=libsql://your-db.turso.io
+TURSO_TOKEN=...
+CRON_SECRET=...
+```
+
+Notes:
+
+- `WEBHOOK_URL` should be the root domain, not `/webhook`. The app appends `/webhook` itself.
+- `TELEGRAM_WEBHOOK_SECRET` and `CRON_SECRET` should be different long random strings.
+- Never commit `.env`. Only commit `.env.example`.
+
+### Public routes
+
+| Route             | Purpose                             |
+| ----------------- | ----------------------------------- |
+| `/`               | Landing page                        |
+| `/health`         | Health check                        |
+| `/webhook`        | Telegram webhook                    |
+| `/cron/reminders` | External cron trigger for reminders |
+
+### cron-job.org setup
+
+Create a job with:
+
+- **URL:** `https://your-domain.com/cron/reminders`
+- **Method:** `POST`
+- **Header:** `x-cron-secret: <CRON_SECRET>`
+- **Timezone:** `UTC`
+- **Frequency:** every 5 minutes
+
+Use cron-job.org's test run once after deployment, then verify the JSON response and Vercel logs.
+
+### Open-source safety checklist
+
+- Confirm `.env` is untracked: `git ls-files .env`
+- Use placeholders only in `.env.example`
+- Rotate secrets immediately if any real values were ever committed or pushed
+- Keep `CRON_SECRET` only in Vercel and cron-job.org
+- Keep `TELEGRAM_WEBHOOK_SECRET` only in Vercel and Telegram webhook config
 
 ## Planned Tech (not yet implemented)
 
-| Component            | Planned choice                                       | Milestone |
-| -------------------- | ---------------------------------------------------- | --------- |
-| **Embeddings**       | Anthropic / OpenAI embeddings API                    | M6        |
-| **Vector search**    | sqlite-vec (Turso extension)                         | M6        |
-| **Document parsing** | `unpdf` for PDFs, `mammoth` for Word docs            | M6        |
-| **Scheduling**       | `node-cron` or Bun's built-in timer                  | M4        |
-| **Task queue**       | BullMQ + Redis or lightweight alternative            | M4        |
-| **Google Calendar**  | Google Calendar API (OAuth2)                         | M7        |
-| **Gmail**            | Gmail API (OAuth2) — read, draft, send with approval | M7        |
-| **Hosting**          | Fly.io or Railway                                    | M10       |
-| **Monitoring**       | Sentry (errors) + Axiom (logs)                       | M10       |
+| Component            | Planned choice                                                   | Milestone |
+| -------------------- | ---------------------------------------------------------------- | --------- |
+| **Embeddings**       | Anthropic / OpenAI embeddings API                                | M6        |
+| **Vector search**    | sqlite-vec (Turso extension)                                     | M6        |
+| **Document parsing** | `unpdf` for PDFs, `mammoth` for Word docs                        | M6        |
+| **Scheduling**       | cron-job.org hitting a protected HTTP endpoint every 5 minutes   | M4        |
+| **Task queue**       | None for now — Turso reminders table acts as the source of truth | M4        |
+| **Google Calendar**  | Google Calendar API (OAuth2)                                     | M7        |
+| **Gmail**            | Gmail API (OAuth2) — read, draft, send with approval             | M7        |
+| **Hosting**          | Vercel (current), Fly.io or Railway later if needed              | M10       |
+| **Monitoring**       | Sentry (errors) + Axiom (logs)                                   | M10       |

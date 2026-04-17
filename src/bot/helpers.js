@@ -51,3 +51,29 @@ export async function performCheckIn(userId, goals) {
   );
   return text;
 }
+
+/**
+ * Format reminders as a readable list for Telegram.
+ * @param {Array<{id: string, content: string, runAt: string, scheduleType: string, source: string}>} reminders
+ * @param {string} timezone
+ */
+export function formatReminderList(reminders, timezone) {
+  return reminders
+    .map((reminder) => {
+      const localTime = new Date(reminder.runAt).toLocaleString("en-US", {
+        timeZone: timezone,
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      const repeatLabel =
+        reminder.scheduleType === "one_time"
+          ? "one-time"
+          : reminder.scheduleType;
+      const sourceLabel =
+        reminder.source === "user" ? "you asked" : reminder.source;
+      return `• ${reminder.content}\n  ${localTime} (${timezone}) · ${repeatLabel} · ${sourceLabel}\n  id:${reminder.id}`;
+    })
+    .join("\n\n");
+}

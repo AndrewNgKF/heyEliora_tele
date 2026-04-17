@@ -10,13 +10,16 @@ async function main() {
   await initDb();
 
   const useWebhook = !!process.env.WEBHOOK_URL;
+  const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET || undefined;
 
   if (useWebhook) {
     const app = createServer(bot);
     app.listen(PORT, () => {
       console.log(`[eliora] webhook server running on port ${PORT}`);
     });
-    await bot.api.setWebhook(`${process.env.WEBHOOK_URL}/webhook`);
+    await bot.api.setWebhook(`${process.env.WEBHOOK_URL}/webhook`, {
+      secret_token: webhookSecret,
+    });
     console.log(`[eliora] webhook set to ${process.env.WEBHOOK_URL}/webhook`);
   } else {
     // Long polling — good for local dev

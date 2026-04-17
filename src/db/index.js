@@ -65,6 +65,27 @@ export async function initDb() {
       output_tokens INTEGER DEFAULT 0,
       PRIMARY KEY (telegram_id, usage_date)
     )`,
+    // schedule_type can be 'one_time', 'daily', or 'weekly'
+    // status can be 'active', 'processing', 'sent', 'error', 'cancelled'
+    `CREATE TABLE IF NOT EXISTS reminders (
+      id TEXT PRIMARY KEY,
+      telegram_id TEXT NOT NULL,
+      kind TEXT NOT NULL DEFAULT 'reminder',
+      source TEXT NOT NULL DEFAULT 'user',
+      content TEXT NOT NULL,
+      schedule_type TEXT NOT NULL DEFAULT 'one_time',
+      run_at TEXT NOT NULL,
+      goal_id TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      last_sent_at TEXT,
+      sent_count INTEGER NOT NULL DEFAULT 0,
+      last_error TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (goal_id) REFERENCES goals(id)
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_reminders_user_status ON reminders(telegram_id, status, run_at)`,
+    `CREATE INDEX IF NOT EXISTS idx_reminders_due ON reminders(status, run_at)`,
   ]);
 
   console.log("[eliora] database initialized");
