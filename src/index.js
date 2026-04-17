@@ -23,6 +23,8 @@ async function main() {
     console.log(`[eliora] webhook set to ${process.env.WEBHOOK_URL}/webhook`);
   } else {
     // Long polling — good for local dev
+    // Must clear any existing webhook first, or Telegram will reject getUpdates
+    await bot.api.deleteWebhook();
     console.log("[eliora] starting in long polling mode...");
     bot.start({
       onStart: () => console.log("[eliora] bot is running"),
