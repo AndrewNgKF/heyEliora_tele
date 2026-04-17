@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>heyEliora — Your personal AI assistant in Telegram</title>
   <meta name="description" content="An AI assistant that lives in Telegram, learns how you work, and keeps you accountable to your goals. Open source.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23e85d3a'/%3E%3Ctext x='50' y='68' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='900' font-size='62' fill='white'%3EE%3C/text%3E%3C/svg%3E">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="heyEliora — Every AI knows the world. Eliora knows you.">
+  <meta property="og:description" content="A personal AI assistant in Telegram. She remembers your goals, tracks progress, and keeps you accountable.">
+  <meta property="og:image" content="https://heyeliora.com/og-image.png">
+  <meta property="og:url" content="https://heyeliora.com">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="heyEliora — Every AI knows the world. Eliora knows you.">
+  <meta name="twitter:description" content="A personal AI assistant in Telegram. She remembers your goals and keeps you accountable.">
+  <meta name="twitter:image" content="https://heyeliora.com/og-image.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
@@ -26,12 +43,26 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="container">
-    <span class="hero-annotation">↓ she actually remembers you</span>
-    <h1>Every AI knows the world.<br><em>Eliora knows you.</em></h1>
-    <p class="lead">A personal AI assistant that lives in Telegram. She learns how you work, keeps you honest about your goals, and actually does things — not just talks about them.</p>
-    <a href="https://t.me/heyEliora_bot" class="cta-primary" target="_blank" rel="noopener">Open Eliora in Telegram →</a>
-    <span class="cta-sub">No credit card. No app to install. Just open Telegram.</span>
+  <div class="container hero-grid">
+    <div class="hero-text">
+      <h1>Every AI knows the world.<br><em>Eliora knows you.</em></h1>
+      <p class="lead">A personal AI assistant that lives in Telegram. She learns how you work, keeps you honest about your goals, and actually does things — not just talks about them.</p>
+      <a href="https://t.me/heyEliora_bot" class="cta-primary" target="_blank" rel="noopener">Open Eliora in Telegram →</a>
+      <span class="cta-sub">No credit card. No app to install. Just open Telegram.</span>
+    </div>
+    <div class="hero-visual">
+      <div class="chat-demo">
+        <div class="chat-header">
+          <div class="avatar">E</div>
+          Eliora
+        </div>
+        <div class="bubble bubble-user">I finished the landing page but it took all week 😅</div>
+        <div class="bubble bubble-bot">Nice progress! But your target was <strong>"MVP by June 1"</strong> and you spent 8 days on the page. Auth still needs work.<br><br>Switch to auth tomorrow?</div>
+        <div class="bubble bubble-user">…you're right.</div>
+        <div class="bubble bubble-bot">That's the pattern — you polish fun stuff when a hard task is next. Auth tomorrow. I'll check in.</div>
+      </div>
+      <span class="hero-annotation">↑ she actually remembers you</span>
+    </div>
   </div>
 </section>
 
@@ -55,7 +86,7 @@
   </div>
 </section>
 
-<!-- CHAT DEMO -->
+<!-- CHAT DEMO (now in hero — this section kept as social proof) -->
 <section class="chat-section">
   <div class="container">
     <h2>This is what it <span class="squiggle">actually</span> looks like.</h2>
@@ -66,13 +97,13 @@
         <div class="avatar">E</div>
         Eliora
       </div>
-      <div class="bubble bubble-user">I finally finished the landing page for my SaaS. Took me all week though 😅</div>
-      <div class="bubble bubble-bot">Nice, that's real progress on your launch goal. 🎯<br><br>But honest check — your target was <strong>"MVP live by June 1"</strong> and you've spent 8 days on the landing page. The core product still needs auth and billing.<br><br>What if you timebox the page as done and switch to auth tomorrow?</div>
-      <div class="bubble bubble-user">…you're right. I was procrastinating on the hard parts.</div>
-      <div class="bubble bubble-bot">That's the pattern I've noticed — you polish the fun stuff when a hard task is next. Not a character flaw, just a habit to watch.<br><br>Auth tomorrow. I'll ask you about it.</div>
+      <div class="bubble bubble-user">remind me to send the investor email tomorrow at 9am</div>
+      <div class="bubble bubble-bot">Done — reminder set for tomorrow at 9:00 AM. 📩<br><br>By the way, this is the third time you've pushed this email back. Want to just draft it now while it's on your mind? I can help.</div>
+      <div class="bubble bubble-user">ugh fine. here's what I want to say…</div>
+      <div class="bubble bubble-bot">Good call. Let's get it done. 💪</div>
     </div>
 
-    <p class="chat-caption">↑ She tracked it. She noticed the pattern. She redirected you.</p>
+    <p class="chat-caption">↑ Reminders + accountability in one place.</p>
   </div>
 </section>
 

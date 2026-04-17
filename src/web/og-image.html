@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OG Image — heyEliora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Inter:wght@400;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* Open this file in a browser, screenshot the card at 1200×630 */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #e8e3da;
+      font-family: "Inter", -apple-system, sans-serif;
+    }
+
+    .card {
+      width: 1200px;
+      height: 630px;
+      background: #fffdf9;
+      border-radius: 0;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Left — main content */
+    .left {
+      flex: 1;
+      padding: 72px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .brand {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 36px;
+      color: #1a1a1a;
+    }
+    .brand span { color: #e85d3a; }
+
+    h1 {
+      font-size: 58px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.035em;
+      color: #1a1a1a;
+      margin-bottom: 24px;
+    }
+    h1 em {
+      font-style: normal;
+      color: #e85d3a;
+    }
+
+    .subtitle {
+      font-size: 22px;
+      line-height: 1.5;
+      color: #444;
+      max-width: 460px;
+    }
+
+    .badge {
+      margin-top: 36px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 14px 28px;
+      border-radius: 50px;
+      font-weight: 800;
+      font-size: 18px;
+      width: fit-content;
+    }
+
+    .badge svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    /* Right — chat mockup */
+    .right {
+      width: 420px;
+      background: #fef6ec;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 36px;
+    }
+
+    .chat {
+      background: #fff;
+      border: 2px solid #e8e3da;
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      box-shadow: 4px 4px 0 #e8e3da;
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e8e3da;
+      margin-bottom: 16px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #e85d3a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-family: "Caveat", cursive;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 16px;
+      margin-bottom: 10px;
+      font-size: 13.5px;
+      line-height: 1.45;
+      max-width: 88%;
+    }
+
+    .bubble-user {
+      background: #d8f0dd;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bubble-bot {
+      background: #fef6ec;
+      border-bottom-left-radius: 4px;
+    }
+
+    .bubble-bot strong { color: #e85d3a; }
+
+    /* Annotation */
+    .annotation {
+      font-family: "Caveat", cursive;
+      font-size: 20px;
+      color: #e85d3a;
+      text-align: center;
+      margin-top: 12px;
+      transform: rotate(-1.5deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="left">
+      <div class="brand">hey<span>Eliora</span></div>
+      <h1>Every AI knows<br>the world.<br><em>Eliora knows you.</em></h1>
+      <p class="subtitle">A personal AI assistant that lives in Telegram. She remembers your goals and keeps you accountable.</p>
+      <div class="badge">
+        <!-- Telegram icon -->
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 1 0 24 12.056A12.01 12.01 0 0 0 11.944 0Zm5.573 7.26l-1.97 9.29c-.145.658-.537.818-1.084.508l-3-2.21l-1.446 1.394a.759.759 0 0 1-.6.295l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.869 4.326l-2.96-.924c-.643-.203-.657-.643.136-.953l11.566-4.458c.537-.194 1.006.131.832.943Z"/></svg>
+        Open in Telegram
+      </div>
+    </div>
+    <div class="right">
+      <div>
+        <div class="chat">
+          <div class="chat-header">
+            <div class="avatar">E</div>
+            Eliora
+          </div>
+          <div class="bubble bubble-user">I finished the landing page but it took all week 😅</div>
+          <div class="bubble bubble-bot">Nice progress! But your target was <strong>"MVP by June 1"</strong> and you spent 8 days on the page. Auth still needs work.<br><br>Switch to auth tomorrow?</div>
+          <div class="bubble bubble-user">…you're right.</div>
+          <div class="bubble bubble-bot">That's the pattern — you polish fun stuff when a hard task is next. Auth tomorrow. I'll check in.</div>
+        </div>
+        <div class="annotation">↑ she actually remembers you</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
