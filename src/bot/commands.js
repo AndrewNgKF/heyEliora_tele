@@ -235,8 +235,7 @@ commands.command("usage", async (ctx) => {
   await ctx.replyMd(
     `*Usage today*\n\n` +
       `Tier: *${tier}*\n` +
-      `Messages: ${used} / ${usage.limit}\n` +
-      `Remaining: ${usage.remaining}`,
+      `Messages: ${used} / ${usage.limit} (${usage.remaining} left)`,
   );
 });
 
@@ -330,8 +329,7 @@ commands.command("mydata", async (ctx) => {
 
   // Usage
   text += `\n\n*Usage today*`;
-  text += `\n• Messages: ${used} / ${usage.limit}`;
-  text += `\n• Remaining: ${usage.remaining}`;
+  text += `\n• Messages: ${used} / ${usage.limit} (${usage.remaining} left)`;
 
   // Goals
   if (goals.length > 0) {

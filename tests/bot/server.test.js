@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Mock job processors before importing server
-const mockProcessDueMessages = vi.fn().mockResolvedValue({ sent: 2, failed: 0 });
+const mockProcessDueMessages = vi
+  .fn()
+  .mockResolvedValue({ sent: 2, failed: 0 });
 const mockProcessNudges = vi.fn().mockResolvedValue({ evaluated: 5, sent: 1 });
 
 vi.mock("../../src/jobs/sender.js", () => ({

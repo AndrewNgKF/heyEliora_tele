@@ -10,8 +10,13 @@ vi.mock("../../src/db/index.js", () => ({
 
 // Import after mock
 const { executeTool } = await import("../../src/llm/tools.js");
-const { ensureUser, getGoals, getPreferences, listReminders, getNudgeSettings } =
-  await import("../../src/db/queries.js");
+const {
+  ensureUser,
+  getGoals,
+  getPreferences,
+  listReminders,
+  getNudgeSettings,
+} = await import("../../src/db/queries.js");
 
 const TG_ID = "999888777";
 

@@ -659,7 +659,11 @@ describe("user summary", () => {
   });
 
   it("upserts and retrieves summary", async () => {
-    await upsertUserSummary(TG_ID, "Focused on fitness goals, prefers direct tone", 10);
+    await upsertUserSummary(
+      TG_ID,
+      "Focused on fitness goals, prefers direct tone",
+      10,
+    );
     const result = await getUserSummary(TG_ID);
     expect(result.summary).toContain("fitness goals");
     expect(result.messagesAtSummary).toBe(10);

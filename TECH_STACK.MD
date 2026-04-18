@@ -10,15 +10,15 @@
 | **Telegram Bot** | grammY v1                     | Best JS bot framework — Composer pattern for handler separation, middleware system, inline keyboards       |
 | **LLM**          | Claude (Anthropic SDK direct) | Best at following nuanced instructions and tool use. Direct SDK gives full control over the tool-call loop |
 | **Database**     | Turso (libSQL)                | SQLite-based, edge-ready. One DB for all relational data                                                   |
-| **Testing**      | Vitest + @vitest/coverage-v8  | Fast, ESM-native, in-memory libsql for isolated DB tests. 95%+ coverage                                   |
+| **Testing**      | Vitest + @vitest/coverage-v8  | Fast, ESM-native, in-memory libsql for isolated DB tests. 95%+ coverage                                    |
 
 ## Auth & Security
 
-| Component         | Choice                                                             |
-| ----------------- | ------------------------------------------------------------------ |
-| **User auth**     | Telegram user ID (bot already knows who you are)                   |
-| **API keys**      | Environment variables, validated at startup, never in DB           |
-| **Rate limiting** | Tier-based daily message caps, timezone-aware reset                |
+| Component         | Choice                                                                                                                                             |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **User auth**     | Telegram user ID (bot already knows who you are)                                                                                                   |
+| **API keys**      | Environment variables, validated at startup, never in DB                                                                                           |
+| **Rate limiting** | Tier-based daily message caps, timezone-aware reset                                                                                                |
 | **Data deletion** | `/forget` wipes 7 tables (messages, goals, preferences, entries, reminders, nudges, summary). Keeps `users` + `daily_usage` to prevent trial abuse |
 
 ## Project Structure
@@ -79,16 +79,16 @@ src/
 
 Nine tables, all in Turso:
 
-| Table                | Purpose                                                            |
-| -------------------- | ------------------------------------------------------------------ |
-| `users`              | Telegram ID, name, tier, timezone, created_at                      |
-| `messages`           | Conversation history (for LLM context window)                      |
-| `goals`              | User goals with baseline + target (soft delete via `active` flag)  |
-| `preferences`        | Work style, tone, schedule prefs                                   |
-| `goal_entries`       | Progress logs tied to specific goals                               |
-| `daily_usage`        | Message counts + token usage per user per day                      |
-| `scheduled_messages` | Unified queue for reminders + nudges (producer/consumer pattern)   |
-| `nudge_settings`     | Per-user nudge frequency, quiet hours, next_nudge_at               |
+| Table                | Purpose                                                           |
+| -------------------- | ----------------------------------------------------------------- |
+| `users`              | Telegram ID, name, tier, timezone, created_at                     |
+| `messages`           | Conversation history (for LLM context window)                     |
+| `goals`              | User goals with baseline + target (soft delete via `active` flag) |
+| `preferences`        | Work style, tone, schedule prefs                                  |
+| `goal_entries`       | Progress logs tied to specific goals                              |
+| `daily_usage`        | Message counts + token usage per user per day                     |
+| `scheduled_messages` | Unified queue for reminders + nudges (producer/consumer pattern)  |
+| `nudge_settings`     | Per-user nudge frequency, quiet hours, next_nudge_at              |
 | `user_summary`       | Rolling LLM-generated profile summary, refreshed every ~10 msgs   |
 
 ## Key Design Decisions
