@@ -48,7 +48,9 @@ commands.command("start", async (ctx) => {
 // /forget
 commands.command("forget", async (ctx) => {
   await forgetUser(ctx.userId);
-  await ctx.reply("Done — I've forgotten everything. Your profile is kept, but goals, preferences, history, and all notes are wiped. Fresh start!");
+  await ctx.reply(
+    "Done — I've forgotten everything. Your profile is kept, but goals, preferences, history, and all notes are wiped. Fresh start!",
+  );
 });
 
 // /howto

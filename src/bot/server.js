@@ -14,9 +14,16 @@ function safeEqual(left, right) {
   const leftBuffer = Buffer.from(left || "");
   const rightBuffer = Buffer.from(right || "");
 
-  if (leftBuffer.length !== rightBuffer.length) return false;
+  // Pad to equal length to avoid leaking secret length via timing
+  const maxLen = Math.max(leftBuffer.length, rightBuffer.length, 1);
+  const a = Buffer.alloc(maxLen);
+  const b = Buffer.alloc(maxLen);
+  a.set(leftBuffer);
+  b.set(rightBuffer);
 
-  return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+  return (
+    leftBuffer.length === rightBuffer.length && crypto.timingSafeEqual(a, b)
+  );
 }
 
 /**
@@ -71,11 +78,15 @@ export function createServer(bot) {
 
   app.post("/webhook", async (req, res) => {
     try {
-      if (telegramWebhookSecret) {
-        const token = req.header("x-telegram-bot-api-secret-token");
-        if (!safeEqual(token, telegramWebhookSecret)) {
-          return res.status(401).end();
-        }
+      if (!telegramWebhookSecret) {
+        console.error(
+          "[eliora] TELEGRAM_WEBHOOK_SECRET is not set — rejecting webhook",
+        );
+        return res.status(500).end();
+      }
+      const token = req.header("x-telegram-bot-api-secret-token");
+      if (!safeEqual(token, telegramWebhookSecret)) {
+        return res.status(401).end();
       }
       await bot.handleUpdate(req.body);
       res.status(200).end();

@@ -81,8 +81,11 @@ export async function forgetUser(telegramId) {
   ];
   await Promise.all(
     tables.map((t) =>
-      db.execute({ sql: `DELETE FROM ${t} WHERE telegram_id = ?`, args: [telegramId] })
-    )
+      db.execute({
+        sql: `DELETE FROM ${t} WHERE telegram_id = ?`,
+        args: [telegramId],
+      }),
+    ),
   );
 }
 
