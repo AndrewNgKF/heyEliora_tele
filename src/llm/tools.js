@@ -294,7 +294,8 @@ export async function executeTool(telegramId, toolName, input) {
       const parts = [];
       if (input.enabled != null) parts.push(`enabled: ${input.enabled}`);
       if (input.frequency) parts.push(`frequency: ${input.frequency}`);
-      if (input.quiet_start) parts.push(`quiet hours start: ${input.quiet_start}`);
+      if (input.quiet_start)
+        parts.push(`quiet hours start: ${input.quiet_start}`);
       if (input.quiet_end) parts.push(`quiet hours end: ${input.quiet_end}`);
       return `Nudge settings updated — ${parts.join(", ")}`;
     }

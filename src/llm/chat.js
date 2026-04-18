@@ -69,14 +69,15 @@ You know the user's goals, baselines, targets, and recent entries. Reference the
  * @returns {Promise<string>}
  */
 async function buildSystemPrompt(telegramId, timezone = "UTC") {
-  const [goals, prefs, entries, reminders, nudgeSettings, summaryRow] = await Promise.all([
-    getGoals(telegramId),
-    getPreferences(telegramId),
-    getRecentProgress(telegramId),
-    listReminders(telegramId, 5),
-    getNudgeSettings(telegramId),
-    getUserSummary(telegramId),
-  ]);
+  const [goals, prefs, entries, reminders, nudgeSettings, summaryRow] =
+    await Promise.all([
+      getGoals(telegramId),
+      getPreferences(telegramId),
+      getRecentProgress(telegramId),
+      listReminders(telegramId, 5),
+      getNudgeSettings(telegramId),
+      getUserSummary(telegramId),
+    ]);
 
   const now = new Date().toLocaleString("en-US", {
     timeZone: timezone,
@@ -171,9 +172,14 @@ export async function chat(userId, message) {
   // Fire-and-forget: push next nudge forward + maybe refresh summary
   const afterChat = () => {
     resetNextNudgeAt(userId).catch(() => {});
-    needsSummaryRefresh(userId).then((needs) => {
-      if (needs) refreshUserSummary(userId).catch((e) => console.error("[eliora] summary refresh error:", e));
-    }).catch(() => {});
+    needsSummaryRefresh(userId)
+      .then((needs) => {
+        if (needs)
+          refreshUserSummary(userId).catch((e) =>
+            console.error("[eliora] summary refresh error:", e),
+          );
+      })
+      .catch(() => {});
   };
 
   let messages = history.map((m) => ({ role: m.role, content: m.content }));

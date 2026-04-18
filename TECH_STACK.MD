@@ -102,11 +102,11 @@ Notes:
 
 ### Public routes
 
-| Route             | Purpose                             |
-| ----------------- | ----------------------------------- |
-| `/`               | Landing page                        |
-| `/health`         | Health check                        |
-| `/webhook`        | Telegram webhook                    |
+| Route           | Purpose                                      |
+| --------------- | -------------------------------------------- |
+| `/`             | Landing page                                 |
+| `/health`       | Health check                                 |
+| `/webhook`      | Telegram webhook                             |
 | `/cron/deliver` | External cron trigger for scheduled messages |
 
 ### cron-job.org setup

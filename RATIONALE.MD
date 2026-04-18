@@ -74,7 +74,7 @@ If they were merged, "stop reminding me" would be ambiguous — do they mean the
 
 3. **`/cron/deliver` endpoint** — the existing delivery job picks up all due `scheduled_messages` (reminders + nudges) and sends them. Nudges format as `👋 {message}`, reminders as `⏰ *Reminder*`.
 
-4. **LLM-generated content** — nudges aren't templates. Claude writes each one based on the user's actual goals and recent activity. Like a friend who remembers "you said you'd start running this week" and asks how it went. First nudge includes a self-aware note: *"I'll check in like this from time to time — just tell me if you want more or less of it."*
+4. **LLM-generated content** — nudges aren't templates. Claude writes each one based on the user's actual goals and recent activity. Like a friend who remembers "you said you'd start running this week" and asks how it went. First nudge includes a self-aware note: _"I'll check in like this from time to time — just tell me if you want more or less of it."_
 
 5. **Conversational control** — no `/nudgesettings` command. Users adjust nudges by talking naturally:
    - "Check in with me every day" → `update_nudge_settings(frequency: 'daily')`

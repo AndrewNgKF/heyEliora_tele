@@ -558,7 +558,14 @@ export async function getNudgeSettings(telegramId) {
     args: [telegramId],
   });
   if (result.rows.length === 0) {
-    return { enabled: true, frequency: "every_3_days", quietStart: "22:00", quietEnd: "08:00", lastNudgeAt: null, nextNudgeAt: null };
+    return {
+      enabled: true,
+      frequency: "every_3_days",
+      quietStart: "22:00",
+      quietEnd: "08:00",
+      lastNudgeAt: null,
+      nextNudgeAt: null,
+    };
   }
   const r = result.rows[0];
   return {
@@ -611,7 +618,9 @@ export async function markNudgeSent(telegramId) {
   // Get user's frequency to compute next_nudge_at
   const settings = await getNudgeSettings(telegramId);
   const days = NUDGE_THRESHOLDS[settings.frequency] || 3;
-  const nextNudge = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+  const nextNudge = new Date(
+    Date.now() + days * 24 * 60 * 60 * 1000,
+  ).toISOString();
 
   await db.execute({
     sql: `INSERT INTO nudge_settings (telegram_id, last_nudge_at, next_nudge_at, updated_at)
