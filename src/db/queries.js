@@ -1,3 +1,7 @@
+import { db } from "./index.js";
+import { generateId } from "../utils/id.js";
+import { HARD_DAILY_CAP, NUDGE_THRESHOLDS, getTierConfig } from "../config/CONSTANTS.js";
+
 /**
  * Ensure a user exists, create if not
  * @param {string} telegramId
