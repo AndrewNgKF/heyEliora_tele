@@ -2,6 +2,7 @@ import { Composer, InlineKeyboard } from "grammy";
 import { chat } from "../llm/chat.js";
 import {
   clearHistory,
+  forgetUser,
   getGoals,
   listReminders,
   cancelReminder,
@@ -46,8 +47,8 @@ commands.command("start", async (ctx) => {
 
 // /forget
 commands.command("forget", async (ctx) => {
-  await clearHistory(ctx.userId);
-  await ctx.reply("Done — I've forgotten our conversation. Fresh start!");
+  await forgetUser(ctx.userId);
+  await ctx.reply("Done — I've forgotten everything. Your profile is kept, but goals, preferences, history, and all notes are wiped. Fresh start!");
 });
 
 // /howto
@@ -378,7 +379,6 @@ commands.command("mydata", async (ctx) => {
 
   text += `\n\n---`;
   text += `\nTo delete everything: /forget`;
-  text += `\nSource code: github.com/AndrewNgKF/heyEliora\\_tele`;
 
   await ctx.replyMd(text);
 });

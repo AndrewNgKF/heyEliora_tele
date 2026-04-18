@@ -64,6 +64,28 @@ export async function clearHistory(telegramId) {
   });
 }
 
+/**
+ * Delete everything about a user except their profile in `users`
+ * and their usage counts in `daily_usage` (prevents trial abuse).
+ * @param {string} telegramId
+ */
+export async function forgetUser(telegramId) {
+  const tables = [
+    "messages",
+    "goals",
+    "preferences",
+    "goal_entries",
+    "scheduled_messages",
+    "nudge_settings",
+    "user_summary",
+  ];
+  await Promise.all(
+    tables.map((t) =>
+      db.execute({ sql: `DELETE FROM ${t} WHERE telegram_id = ?`, args: [telegramId] })
+    )
+  );
+}
+
 // --- Goals ---
 
 /**
