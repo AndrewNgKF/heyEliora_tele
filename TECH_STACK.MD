@@ -10,6 +10,7 @@
 | **Telegram Bot** | grammY v1                     | Best JS bot framework — Composer pattern for handler separation, middleware system, inline keyboards       |
 | **LLM**          | Claude (Anthropic SDK direct) | Best at following nuanced instructions and tool use. Direct SDK gives full control over the tool-call loop |
 | **Database**     | Turso (libSQL)                | SQLite-based, edge-ready. One DB for all relational data                                                   |
+| **Testing**      | Vitest + @vitest/coverage-v8  | Fast, ESM-native, in-memory libsql for isolated DB tests. 95%+ coverage                                   |
 
 ## Auth & Security
 
@@ -18,7 +19,7 @@
 | **User auth**     | Telegram user ID (bot already knows who you are)                   |
 | **API keys**      | Environment variables, validated at startup, never in DB           |
 | **Rate limiting** | Tier-based daily message caps, timezone-aware reset                |
-| **Data deletion** | `/forget` clears conversation history. Full `/delete` planned (M9) |
+| **Data deletion** | `/forget` wipes 7 tables (messages, goals, preferences, entries, reminders, nudges, summary). Keeps `users` + `daily_usage` to prevent trial abuse |
 
 ## Project Structure
 
@@ -40,36 +41,55 @@ src/
 │   ├── index.js      # Turso connection + table creation (CREATE IF NOT EXISTS)
 │   └── queries.js    # Every DB operation as a named function
 ├── jobs/
-│   └── reminders.js  # External-cron-triggered reminder processor + recurring rescheduling
+│   ├── sender.js     # Drains scheduled_messages queue, delivers via bot.api.sendMessage
+│   ├── nudges.js     # Evaluates nudge candidates, generates contextual check-ins via Claude
+│   └── summarize.js  # Background rolling user summary refresh (fire-and-forget after chat)
 ├── llm/
 │   ├── chat.js       # Conversation loop: history → system prompt → Claude → tool calls → response
 │   └── tools.js      # Tool definitions (what Claude can do) + execution (what actually happens)
-└── utils/
-    └── id.js         # Random short alphanumeric ID generator
+├── utils/
+│   └── id.js         # Random short alphanumeric ID generator
+└── web/
+    ├── index.html    # Landing page (hero carousel, FAQ, pitch)
+    ├── terms.html    # Terms of Use
+    ├── privacy.html  # Privacy Policy
+    ├── style.css     # Shared styles
+    └── og-image.html # OG image template
+tests/
+├── helpers/
+│   ├── setup.js      # Env vars for test runs
+│   └── db.js         # In-memory libsql factory (mirrors schema)
+├── db/
+│   └── queries.test.js  # DB query tests (47 tests)
+├── llm/
+│   └── tools.test.js    # Tool execution tests (12 tests)
+└── bot/
+    └── server.test.js   # HTTP endpoint tests (12 tests)
 ```
 
 ### Planned (future milestones)
 
 ```
 src/
-├── jobs/             # Cron / scheduled tasks: reminders, weekly recaps, nudges (M4)
 ├── rag/              # Embeddings, vector search, document chunking (M6)
 └── integrations/     # Calendar, email, task management adapters (M7)
 ```
 
 ## Database Schema
 
-Seven tables, all in Turso:
+Nine tables, all in Turso:
 
-| Table          | Purpose                                          |
-| -------------- | ------------------------------------------------ |
-| `users`        | Telegram ID, name, tier, timezone                |
-| `messages`     | Conversation history (for LLM context window)    |
-| `goals`        | User goals with baseline + target                |
-| `preferences`  | Work style, tone, schedule prefs                 |
-| `goal_entries` | Progress logs tied to specific goals             |
-| `daily_usage`  | Message counts + token usage per user per day    |
-| `reminders`    | One-time + recurring reminders and system nudges |
+| Table                | Purpose                                                            |
+| -------------------- | ------------------------------------------------------------------ |
+| `users`              | Telegram ID, name, tier, timezone, created_at                      |
+| `messages`           | Conversation history (for LLM context window)                      |
+| `goals`              | User goals with baseline + target (soft delete via `active` flag)  |
+| `preferences`        | Work style, tone, schedule prefs                                   |
+| `goal_entries`       | Progress logs tied to specific goals                               |
+| `daily_usage`        | Message counts + token usage per user per day                      |
+| `scheduled_messages` | Unified queue for reminders + nudges (producer/consumer pattern)   |
+| `nudge_settings`     | Per-user nudge frequency, quiet hours, next_nudge_at               |
+| `user_summary`       | Rolling LLM-generated profile summary, refreshed every ~10 msgs   |
 
 ## Key Design Decisions
 

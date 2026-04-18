@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.js",
-    "start": "bun src/index.js"
+    "start": "bun src/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +19,9 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "grammy": "^1.42.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "4.1.4",
+    "vitest": "^4.1.4"
   }
 }

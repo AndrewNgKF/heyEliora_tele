@@ -82,7 +82,7 @@ commands.command("goals", async (ctx) => {
   }
 
   await ctx.reply(
-    `Your current goals:\n\n${formatGoalList(goals)}\n\nRemove: /goals remove <id>\nOr just tell me about a new goal and we'll work through it together.`,
+    `Your current goals:\n\n${formatGoalList(goals)}\n\nRemove: /goals remove <id>\n\nOr just tell me about a new goal and we'll work through it together.`,
   );
 });
 
@@ -298,6 +298,7 @@ commands.command("mydata", async (ctx) => {
 
   const [
     { tier, timezone, createdAt },
+    usage,
     goals,
     prefs,
     entries,
@@ -306,6 +307,7 @@ commands.command("mydata", async (ctx) => {
     activity,
   ] = await Promise.all([
     getUserMeta(ctx.userId),
+    checkUsage(ctx.userId),
     getGoals(ctx.userId),
     getPreferences(ctx.userId),
     getRecentProgress(ctx.userId, 10),
@@ -313,6 +315,9 @@ commands.command("mydata", async (ctx) => {
     getNudgeSettings(ctx.userId),
     getActivityStreak(ctx.userId, (await getUserMeta(ctx.userId)).timezone),
   ]);
+
+  const config = getTierConfig(tier);
+  const used = config.dailyLimit - usage.remaining;
 
   let text = `*Everything Eliora knows about ${name}*\n`;
   text += `_This is all the data stored about you. Nothing hidden._\n`;
@@ -322,6 +327,11 @@ commands.command("mydata", async (ctx) => {
   text += `\n• Plan: ${tier}`;
   text += `\n• Timezone: ${timezone}`;
   text += `\n• Joined: ${new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`;
+
+  // Usage
+  text += `\n\n*Usage today*`;
+  text += `\n• Messages: ${used} / ${usage.limit}`;
+  text += `\n• Remaining: ${usage.remaining}`;
 
   // Goals
   if (goals.length > 0) {

@@ -73,8 +73,12 @@ Eliora can remind you and run recurring check-ins.
 - [x] Activity streak tracking (consecutive days with entries, surfaced in prompts and nudges)
 - [x] Goal completion detection (system prompt instructs Eliora to celebrate hitting targets)
 - [x] Conversational /start (direct question, not feature list)
-- [x] Simplified command menu (12 → 5 commands)
+- [x] Simplified command menu (12 → 6 commands: start, goals, whatsup, reminders, mydata, forget)
 - [x] Rolling user summaries (background summarization of conversation history)
+- [x] `/mydata` command — full transparency, shows everything Eliora stores (including usage)
+- [x] Vitest test suite — 71 tests across DB queries, tool execution, HTTP endpoints (95%+ coverage)
+- [x] Landing page — hero carousel, universal letter, 5 pitch points, FAQ
+- [x] Terms of Use + Privacy Policy pages
 - [ ] Weekly recap message (tasks handled, goals alignment %)
 - [ ] Goal check-in (weekly — "3 of 8 tasks aligned with your Q2 goal")
 
@@ -95,8 +99,8 @@ Eliora can remind you and run recurring check-ins.
 - [x] Track usage metrics (number of messages, actions taken) for future analytics and potential paid tier limits
 - [x] Summarize conversations in the database to save space (rolling user summaries, refreshed after threshold)
 - [x] Personal Profile — `/profile` command shows goals, preferences, recent activity at a glance
+- [x] Landing page with clear value prop and setup instructions
 - [ ] Make it appealing, Eliora logo, buttons for user interaction, etc.
-- [ ] Landing page with clear value prop and setup instructions (can start as GitHub README)
 - [ ] Consider easter eggs or fun personality quirks to make Eliora more engaging and less robotic
 
 ---
@@ -166,8 +170,8 @@ Eliora writes like you.
 
 Users trust Eliora because they're in control.
 
-- [ ] `/privacy` command — shows exactly what Eliora stores about you
-- [ ] `/delete` command — nuclear option, wipes all user data
+- [ ] `/privacy` command — shows exactly what Eliora stores about you (see also: `/mydata` already exists)
+- [ ] `/delete` command — nuclear option, wipes all user data (see also: `/forget` wipes 7 of 9 tables)
 - [ ] `/export` command — download your data
 - [ ] Data retention policy (auto-delete old conversations after N days, configurable)
 - [ ] Clear documentation on what's stored and where
