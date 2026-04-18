@@ -16,10 +16,7 @@ import {
   getNudgeSettings,
   getActivityStreak,
 } from "../db/queries.js";
-import {
-  TIMEZONE_OPTIONS,
-  HOWTO_TEXT,
-} from "../config/CONSTANTS.js";
+import { TIMEZONE_OPTIONS, HOWTO_TEXT } from "../config/CONSTANTS.js";
 import {
   formatGoalList,
   formatReminderList,
@@ -81,7 +78,7 @@ commands.command("goals", async (ctx) => {
   }
 
   await ctx.reply(
-    `Your current goals:\n\n${formatGoalList(goals)}\n\nRemove: /goals remove <id>\n\nOr just tell me about a new goal and we'll work through it together.`,
+    `Your current goals:\n\n${formatGoalList(goals)}\n\nRemove: /goals remove <ID>\n\nOr just tell me about a new goal and we'll work through it together.`,
   );
 });
 
@@ -111,7 +108,20 @@ commands.command("whatsup", async (ctx) => {
     return;
   }
 
-  const reply = await performCheckIn(ctx.userId, goals);
+  const usage = await checkUsage(ctx.userId);
+  if (!usage.allowed) {
+    await ctx.reply(
+      `You've hit your daily limit of ${usage.limit} messages. Resets at midnight in your timezone.`,
+    );
+    return;
+  }
+
+  const {
+    text: reply,
+    inputTokens,
+    outputTokens,
+  } = await performCheckIn(ctx.userId, goals);
+  await incrementUsage(ctx.userId, inputTokens, outputTokens);
   await ctx.replyMd(reply);
 });
 
@@ -395,7 +405,7 @@ commands.on("message:text", async (ctx) => {
   const usage = await checkUsage(ctx.userId);
   if (!usage.allowed) {
     await ctx.reply(
-      `You've hit your daily limit of ${usage.limit} messages. Resets at midnight in your timezone.\n\nWant more? Upgrades coming soon.`,
+      `You've hit your daily limit of ${usage.limit} messages. Resets at midnight in your timezone.\n\nWant more? Please Upgrade to a paid plan to increase your limits and support development!`,
     );
     return;
   }

@@ -10,11 +10,11 @@ import { chat } from "../llm/chat.js";
 export function formatGoalList(goals) {
   return goals
     .map((g, i) => {
-      let line = `${i + 1}. ${g.goal} (id:${g.id})`;
+      let line = `${i + 1}. ${g.goal} (ID: ${g.id})`;
       if (g.baseline || g.target) {
         const parts = [];
-        if (g.baseline) parts.push(`from: ${g.baseline}`);
-        if (g.target) parts.push(`target: ${g.target}`);
+        if (g.baseline) parts.push(`From: ${g.baseline}`);
+        if (g.target) parts.push(`Target: ${g.target}`);
         line += `\n   ${parts.join(" → ")}`;
       }
       return line;
@@ -45,11 +45,11 @@ export async function performCheckIn(userId, goals) {
       ? `\n\nRecent activity:\n${entries.map((e) => `- [${e.created_at}] (${e.goal}) ${e.content}`).join("\n")}`
       : "\n\nNo progress entries logged yet.";
 
-  const { text } = await chat(
+  const { text, inputTokens, outputTokens } = await chat(
     userId,
     `[SYSTEM CHECK-IN] Give me a quick accountability check-in. Here are my goals:\n${goalList}${entryContext}\n\nBased on my recent activity and our conversations, how am I tracking? Be honest — call me out if I'm drifting.`,
   );
-  return text;
+  return { text, inputTokens, outputTokens };
 }
 
 /**
