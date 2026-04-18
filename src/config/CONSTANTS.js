@@ -70,6 +70,18 @@ export const HOWTO_TEXT =
 /** Shared secret for cron endpoint authentication */
 export const CRON_SECRET = process.env.CRON_SECRET || "";
 
+// ── Nudges ─────────────────────────────────────────────
+
+/** Inactivity thresholds in days per nudge frequency level */
+export const NUDGE_THRESHOLDS = {
+  daily: 1,
+  every_3_days: 3,
+  weekly: 7,
+};
+
+/** Number of user messages between summary refreshes */
+export const SUMMARY_INTERVAL = 10;
+
 /** Telegram command menu entries */
 export const COMMANDS = [
   { command: "start", description: "Welcome + quick start" },

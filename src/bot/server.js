@@ -2,6 +2,7 @@ import crypto from "crypto";
 import express from "express";
 import { CRON_SECRET } from "../config/CONSTANTS.js";
 import { processDueReminders } from "../jobs/reminders.js";
+import { processNudges } from "../jobs/nudges.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -16,6 +17,17 @@ function safeEqual(left, right) {
   if (leftBuffer.length !== rightBuffer.length) return false;
 
   return crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+/**
+ * Express middleware that validates the x-cron-secret header.
+ */
+function requireCronAuth(req, res, next) {
+  const authHeader = req.get("x-cron-secret");
+  if (!CRON_SECRET || !safeEqual(authHeader, CRON_SECRET)) {
+    return res.status(401).json({ ok: false, error: "unauthorized" });
+  }
+  next();
 }
 
 /**
@@ -37,18 +49,22 @@ export function createServer(bot) {
     res.json({ status: "ok" });
   });
 
-  app.post("/cron/reminders", async (req, res) => {
-    const authHeader = req.get("x-cron-secret");
-
-    if (!CRON_SECRET || !safeEqual(authHeader, CRON_SECRET)) {
-      return res.status(401).json({ ok: false, error: "unauthorized" });
-    }
-
+  app.post("/cron/deliver", requireCronAuth, async (_req, res) => {
     try {
       const result = await processDueReminders(bot);
       return res.json({ ok: true, ...result });
     } catch (error) {
       console.error("[eliora] cron/reminders error:", error);
+      return res.status(500).json({ ok: false, error: "internal_error" });
+    }
+  });
+
+  app.post("/cron/nudges", requireCronAuth, async (_req, res) => {
+    try {
+      const result = await processNudges();
+      return res.json({ ok: true, ...result });
+    } catch (error) {
+      console.error("[eliora] cron/nudges error:", error);
       return res.status(500).json({ ok: false, error: "internal_error" });
     }
   });

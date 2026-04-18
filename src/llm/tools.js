@@ -1,5 +1,5 @@
 import {
-  createReminder,
+  createScheduledMessage,
   updateReminder,
   cancelReminder,
   saveGoal,
@@ -9,6 +9,7 @@ import {
   logProgress,
   isValidTimezone,
   setTimezone,
+  updateNudgeSettings,
 } from "../db/queries.js";
 
 /** Tool definitions sent to Claude */
@@ -192,6 +193,37 @@ export const TOOLS = [
       required: ["timezone"],
     },
   },
+  {
+    name: "update_nudge_settings",
+    description:
+      "Update how often Eliora proactively checks in with the user. Call this when the user mentions wanting more or fewer check-ins, nudges, or accountability reminders. Examples: 'check in daily' → frequency='daily', 'stop nagging me' → enabled=false, 'nudge me weekly' → frequency='weekly'.",
+    input_schema: {
+      type: "object",
+      properties: {
+        enabled: {
+          type: "boolean",
+          description:
+            "Whether nudges are enabled. Set false only if user explicitly wants NO check-ins.",
+        },
+        frequency: {
+          type: "string",
+          enum: ["daily", "every_3_days", "weekly"],
+          description:
+            "How often Eliora checks in. daily = every day, every_3_days = default, weekly = once a week.",
+        },
+        quiet_start: {
+          type: "string",
+          description:
+            "Time to stop nudging (HH:MM, 24h). E.g. '22:00' for 10pm.",
+        },
+        quiet_end: {
+          type: "string",
+          description:
+            "Time to resume nudging (HH:MM, 24h). E.g. '08:00' for 8am.",
+        },
+      },
+    },
+  },
 ];
 
 /**
@@ -204,7 +236,7 @@ export const TOOLS = [
 export async function executeTool(telegramId, toolName, input) {
   switch (toolName) {
     case "set_reminder": {
-      const reminderId = await createReminder(telegramId, {
+      const reminderId = await createScheduledMessage(telegramId, {
         content: input.content,
         runAt: input.remind_at_utc,
         scheduleType: input.schedule_type,
@@ -252,6 +284,20 @@ export async function executeTool(telegramId, toolName, input) {
       }
       await setTimezone(telegramId, input.timezone);
       return `Timezone set to ${input.timezone}`;
+    case "update_nudge_settings": {
+      await updateNudgeSettings(telegramId, {
+        enabled: input.enabled,
+        frequency: input.frequency,
+        quietStart: input.quiet_start,
+        quietEnd: input.quiet_end,
+      });
+      const parts = [];
+      if (input.enabled != null) parts.push(`enabled: ${input.enabled}`);
+      if (input.frequency) parts.push(`frequency: ${input.frequency}`);
+      if (input.quiet_start) parts.push(`quiet hours start: ${input.quiet_start}`);
+      if (input.quiet_end) parts.push(`quiet hours end: ${input.quiet_end}`);
+      return `Nudge settings updated — ${parts.join(", ")}`;
+    }
     default:
       return `Unknown tool: ${toolName}`;
   }

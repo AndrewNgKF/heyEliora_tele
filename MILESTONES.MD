@@ -57,11 +57,17 @@ Eliora knows your goals and keeps you accountable.
 
 Eliora can remind you and run recurring check-ins.
 
-- [ ] Reminders table (telegram_id, content, remind_at, sent)
-- [ ] `set_reminder` tool — Eliora parses "remind me to X at Y" conversationally
-- [ ] Scheduler (cron endpoint or setInterval) checks for due reminders and pushes messages
-- [ ] `/remind` command — set a one-time reminder
-- [ ] Recurring reminders (daily, weekly)
+- [x] Reminders table (telegram_id, content, remind_at, sent)
+- [x] `set_reminder` tool — Eliora parses "remind me to X at Y" conversationally
+- [x] `update_reminder` + `cancel_reminder` tools
+- [x] Scheduler (cron endpoint) checks for due reminders and pushes messages
+- [x] `/remind` command — set a one-time reminder
+- [x] `/reminders` command — list active reminders, cancel by ID
+- [x] Recurring reminders (daily, weekly)
+- [x] Timezone handling — users can set their timezone in preferences, reminders and nudges respect that
+- [x] `/timezone` command — view/set timezone with inline keyboard
+- [ ] Nudge system — if inactive for N days, Eliora sends a check-in ("Hey, haven't heard from you in a while. Everything okay?")
+- [ ] Nudge saved in background, triggered by inactivity and not counting against daily limits
 - [ ] Weekly recap message (tasks handled, goals alignment %)
 - [ ] Goal check-in (weekly — "3 of 8 tasks aligned with your Q2 goal")
 - [ ] Re-engagement nudge (if inactive 3+ days)
@@ -70,7 +76,26 @@ Eliora can remind you and run recurring check-ins.
 
 ---
 
-## Milestone 5: Approval Flow + Actions
+## Milestone 5: Web Interface + Payment + User Management and Profile
+
+<!-- TODO: Fill it in from payment architecture.md -->
+<!-- TODO: Periodically Eliora should gather and summarise information through conversation in background "what she knows about you" -->
+<!-- TODO: Users may not feel comfy paying over tele, have a web UI where users can pay, see their goals, reminders and full information -->
+
+## Asides
+
+- [x] RATIONALE.MD — document design decisions and trade-offs
+- [x] Switch IDs from auto-increment integers to short alphanumeric (8 chars) — better UX in Telegram, no privacy leak
+- [x] Track usage metrics (number of messages, actions taken) for future analytics and potential paid tier limits
+- [ ] Make it appealing, Eliora logo, buttons for user interaction, etc.
+- [ ] Landing page with clear value prop and setup instructions (can start as GitHub README)
+- [ ] Consider easter eggs or fun personality quirks to make Eliora more engaging and less robotic
+- [ ] Summarize conversations in the database to save space (e.g. keep last 5 messages, then summarize older ones into a single entry)
+- [ ] Personal Profile, What Eliora knows about you at a glance (goals, preferences, recent activity) — maybe via `/profile` command or in the system prompt for quick reference
+
+---
+
+## Milestone 6: Approval Flow + Actions
 
 Eliora proposes actions and waits for your approval.
 
@@ -84,7 +109,7 @@ Eliora proposes actions and waits for your approval.
 
 ---
 
-## Milestone 6: Document Parsing + RAG
+## Milestone 7: Document Parsing + RAG
 
 Eliora can read your documents and recall relevant info.
 
@@ -101,20 +126,7 @@ Eliora can read your documents and recall relevant info.
 
 ---
 
-## Asides
-
-- [x] RATIONALE.MD — document design decisions and trade-offs
-- [x] Switch IDs from auto-increment integers to short alphanumeric (8 chars) — better UX in Telegram, no privacy leak
-- [x] Track usage metrics (number of messages, actions taken) for future analytics and potential paid tier limits
-- [ ] Make it appealing, Eliora logo, buttons for user interaction, etc.
-- [ ] Landing page with clear value prop and setup instructions (can start as GitHub README)
-- [ ] Consider easter eggs or fun personality quirks to make Eliora more engaging and less robotic
-- [ ] Summarize conversations in the database to save space (e.g. keep last 5 messages, then summarize older ones into a single entry)
-- [ ] Personal Profile, What Eliora knows about you at a glance (goals, preferences, recent activity) — maybe via `/profile` command or in the system prompt for quick reference
-
----
-
-## Milestone 7: Integrations (Calendar + Email)
+## Milestone 8: Integrations (Calendar + Email)
 
 Eliora connects to your tools.
 
@@ -130,7 +142,7 @@ Eliora connects to your tools.
 
 ---
 
-## Milestone 8: Style Matching
+## Milestone 9: Style Matching
 
 Eliora writes like you.
 
@@ -144,7 +156,7 @@ Eliora writes like you.
 
 ---
 
-## Milestone 9: Privacy + Data Control
+## Milestone 10: Privacy + Data Control
 
 Users trust Eliora because they're in control.
 
@@ -158,7 +170,7 @@ Users trust Eliora because they're in control.
 
 ---
 
-## Milestone 10: Open Source + Deploy
+## Milestone 11: Open Source + Deploy
 
 Ship it.
 

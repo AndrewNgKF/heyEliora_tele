@@ -1,7 +1,3 @@
-import { db } from "./index.js";
-import { generateId } from "../utils/id.js";
-import { getTierConfig, HARD_DAILY_CAP } from "../config/CONSTANTS.js";
-
 /**
  * Ensure a user exists, create if not
  * @param {string} telegramId
@@ -358,10 +354,10 @@ export async function incrementUsage(
   });
 }
 
-// --- Reminders ---
+// --- Scheduled Messages (reminders + nudges) ---
 
 /**
- * Create a reminder or scheduled system nudge.
+ * Create a scheduled message (reminder or system nudge).
  * @param {string} telegramId
  * @param {{
  *   content: string,
@@ -370,40 +366,40 @@ export async function incrementUsage(
  *   kind?: string,
  *   source?: string,
  *   goalId?: string|null,
- * }} reminder
+ * }} msg
  * @returns {Promise<string>}
  */
-export async function createReminder(telegramId, reminder) {
+export async function createScheduledMessage(telegramId, msg) {
   const id = generateId();
   await db.execute({
-    sql: `INSERT INTO reminders (
+    sql: `INSERT INTO scheduled_messages (
             id, telegram_id, kind, source, content, schedule_type,
             run_at, goal_id
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       id,
       telegramId,
-      reminder.kind || "reminder",
-      reminder.source || "user",
-      reminder.content,
-      reminder.scheduleType || "one_time",
-      reminder.runAt,
-      reminder.goalId || null,
+      msg.kind || "reminder",
+      msg.source || "user",
+      msg.content,
+      msg.scheduleType || "one_time",
+      msg.runAt,
+      msg.goalId || null,
     ],
   });
   return id;
 }
 
 /**
- * List reminders for a user.
+ * List user-created reminders (excludes system nudges).
  * @param {string} telegramId
  * @param {number} [limit=20]
  */
 export async function listReminders(telegramId, limit = 20) {
   const result = await db.execute({
     sql: `SELECT id, kind, source, content, schedule_type, run_at, goal_id, status, sent_count
-          FROM reminders
-          WHERE telegram_id = ? AND status IN ('active', 'processing')
+          FROM scheduled_messages
+          WHERE telegram_id = ? AND status IN ('active', 'processing') AND source = 'user'
           ORDER BY run_at ASC
           LIMIT ?`,
     args: [telegramId, limit],
@@ -423,13 +419,13 @@ export async function listReminders(telegramId, limit = 20) {
 }
 
 /**
- * Cancel a reminder for a user.
+ * Cancel a scheduled message for a user.
  * @param {string} telegramId
  * @param {string} reminderId
  */
 export async function cancelReminder(telegramId, reminderId) {
   await db.execute({
-    sql: `UPDATE reminders
+    sql: `UPDATE scheduled_messages
           SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
           WHERE id = ? AND telegram_id = ? AND status IN ('active', 'processing')`,
     args: [reminderId, telegramId],
@@ -465,7 +461,7 @@ export async function updateReminder(telegramId, reminderId, fields) {
   args.push(reminderId, telegramId);
 
   await db.execute({
-    sql: `UPDATE reminders SET ${sets.join(", ")} WHERE id = ? AND telegram_id = ? AND status = 'active'`,
+    sql: `UPDATE scheduled_messages SET ${sets.join(", ")} WHERE id = ? AND telegram_id = ? AND status = 'active'`,
     args,
   });
 }
@@ -478,7 +474,7 @@ export async function updateReminder(telegramId, reminderId, fields) {
 export async function getDueReminders(nowIso, limit = 50) {
   const result = await db.execute({
     sql: `SELECT id, telegram_id, kind, source, content, schedule_type, run_at, goal_id, sent_count
-          FROM reminders
+          FROM scheduled_messages
           WHERE status = 'active' AND run_at <= ?
           ORDER BY run_at ASC
           LIMIT ?`,
@@ -506,7 +502,7 @@ export async function getDueReminders(nowIso, limit = 50) {
  */
 export async function claimReminder(reminderId, nowIso) {
   const result = await db.execute({
-    sql: `UPDATE reminders
+    sql: `UPDATE scheduled_messages
           SET status = 'processing', updated_at = CURRENT_TIMESTAMP, last_error = NULL
           WHERE id = ? AND status = 'active' AND run_at <= ?`,
     args: [reminderId, nowIso],
@@ -521,7 +517,7 @@ export async function claimReminder(reminderId, nowIso) {
  */
 export async function completeReminder(reminderId, nextRunAt) {
   await db.execute({
-    sql: `UPDATE reminders
+    sql: `UPDATE scheduled_messages
           SET status = CASE WHEN ? IS NULL THEN 'sent' ELSE 'active' END,
               run_at = COALESCE(?, run_at),
               last_sent_at = CURRENT_TIMESTAMP,
@@ -540,11 +536,234 @@ export async function completeReminder(reminderId, nextRunAt) {
  */
 export async function failReminder(reminderId, errorMessage) {
   await db.execute({
-    sql: `UPDATE reminders
+    sql: `UPDATE scheduled_messages
           SET status = 'active',
               last_error = ?,
               updated_at = CURRENT_TIMESTAMP
           WHERE id = ?`,
     args: [errorMessage.slice(0, 500), reminderId],
   });
+}
+
+// --- Nudge Settings ---
+
+/**
+ * Get nudge settings for a user (returns defaults if not set).
+ * @param {string} telegramId
+ * @returns {Promise<{enabled: boolean, frequency: string, quietStart: string, quietEnd: string, lastNudgeAt: string|null}>}
+ */
+export async function getNudgeSettings(telegramId) {
+  const result = await db.execute({
+    sql: "SELECT enabled, frequency, quiet_start, quiet_end, last_nudge_at, next_nudge_at FROM nudge_settings WHERE telegram_id = ?",
+    args: [telegramId],
+  });
+  if (result.rows.length === 0) {
+    return { enabled: true, frequency: "every_3_days", quietStart: "22:00", quietEnd: "08:00", lastNudgeAt: null, nextNudgeAt: null };
+  }
+  const r = result.rows[0];
+  return {
+    enabled: Boolean(r.enabled),
+    frequency: r.frequency,
+    quietStart: r.quiet_start,
+    quietEnd: r.quiet_end,
+    lastNudgeAt: r.last_nudge_at || null,
+    nextNudgeAt: r.next_nudge_at || null,
+  };
+}
+
+/**
+ * Update nudge settings for a user (upsert).
+ * @param {string} telegramId
+ * @param {{enabled?: boolean, frequency?: string, quietStart?: string, quietEnd?: string}} settings
+ */
+export async function updateNudgeSettings(telegramId, settings) {
+  await db.execute({
+    sql: `INSERT INTO nudge_settings (telegram_id, enabled, frequency, quiet_start, quiet_end, updated_at)
+          VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+          ON CONFLICT(telegram_id) DO UPDATE SET
+            enabled = COALESCE(?, enabled),
+            frequency = COALESCE(?, frequency),
+            quiet_start = COALESCE(?, quiet_start),
+            quiet_end = COALESCE(?, quiet_end),
+            updated_at = CURRENT_TIMESTAMP`,
+    args: [
+      telegramId,
+      settings.enabled != null ? (settings.enabled ? 1 : 0) : 1,
+      settings.frequency || "every_3_days",
+      settings.quietStart || "22:00",
+      settings.quietEnd || "08:00",
+      settings.enabled != null ? (settings.enabled ? 1 : 0) : null,
+      settings.frequency || null,
+      settings.quietStart || null,
+      settings.quietEnd || null,
+    ],
+  });
+
+  // Recalculate next_nudge_at based on new settings
+  await recalculateNextNudgeAt(telegramId);
+}
+
+/**
+ * Mark that a nudge was just sent to a user (upsert — creates row if none exists).
+ * @param {string} telegramId
+ */
+export async function markNudgeSent(telegramId) {
+  // Get user's frequency to compute next_nudge_at
+  const settings = await getNudgeSettings(telegramId);
+  const days = NUDGE_THRESHOLDS[settings.frequency] || 3;
+  const nextNudge = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+
+  await db.execute({
+    sql: `INSERT INTO nudge_settings (telegram_id, last_nudge_at, next_nudge_at, updated_at)
+          VALUES (?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP)
+          ON CONFLICT(telegram_id) DO UPDATE SET
+            last_nudge_at = CURRENT_TIMESTAMP,
+            next_nudge_at = ?,
+            updated_at = CURRENT_TIMESTAMP`,
+    args: [telegramId, nextNudge, nextNudge],
+  });
+}
+
+/**
+ * Get all users eligible for nudge evaluation.
+ * Returns users who have nudges enabled and aren't in a cooldown period.
+ * @returns {Promise<Array<{telegramId: string, timezone: string, frequency: string, quietStart: string, quietEnd: string, lastNudgeAt: string|null, lastMessageAt: string|null}>>}
+ */
+export async function getNudgeCandidates() {
+  const result = await db.execute({
+    sql: `SELECT
+            u.telegram_id,
+            u.timezone,
+            COALESCE(ns.frequency, 'every_3_days') AS frequency,
+            COALESCE(ns.quiet_start, '22:00') AS quiet_start,
+            COALESCE(ns.quiet_end, '08:00') AS quiet_end,
+            ns.last_nudge_at
+          FROM users u
+          LEFT JOIN nudge_settings ns ON u.telegram_id = ns.telegram_id
+          WHERE COALESCE(ns.enabled, 1) = 1
+            AND (
+              ns.next_nudge_at IS NULL
+              OR ns.next_nudge_at <= datetime('now')
+            )`,
+  });
+
+  return result.rows.map((r) => ({
+    telegramId: r.telegram_id,
+    timezone: r.timezone || "UTC",
+    frequency: r.frequency,
+    quietStart: r.quiet_start,
+    quietEnd: r.quiet_end,
+    lastNudgeAt: r.last_nudge_at || null,
+  }));
+}
+
+/**
+ * Check if a user already has a pending nudge.
+ * @param {string} telegramId
+ * @returns {Promise<boolean>}
+ */
+export async function hasPendingNudge(telegramId) {
+  const result = await db.execute({
+    sql: `SELECT 1 FROM scheduled_messages
+          WHERE telegram_id = ? AND kind = 'nudge' AND status IN ('active', 'processing')
+          LIMIT 1`,
+    args: [telegramId],
+  });
+  return result.rows.length > 0;
+}
+
+/**
+ * Recalculate next_nudge_at based on the user's current frequency.
+ * Called after settings change or after a nudge is sent.
+ * @param {string} telegramId
+ */
+export async function recalculateNextNudgeAt(telegramId) {
+  const settings = await getNudgeSettings(telegramId);
+  if (!settings.enabled) {
+    // Disabled — clear next_nudge_at
+    await db.execute({
+      sql: "UPDATE nudge_settings SET next_nudge_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = ?",
+      args: [telegramId],
+    });
+    return;
+  }
+  const days = NUDGE_THRESHOLDS[settings.frequency] || 3;
+  const next = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+  await db.execute({
+    sql: "UPDATE nudge_settings SET next_nudge_at = ?, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = ?",
+    args: [next, telegramId],
+  });
+}
+
+/**
+ * Push next_nudge_at forward from now (called when user sends a message — they're active, no nudge needed yet).
+ * Only updates if a row exists and nudges are enabled.
+ * @param {string} telegramId
+ */
+export async function resetNextNudgeAt(telegramId) {
+  // Get frequency without creating a row
+  const result = await db.execute({
+    sql: "SELECT enabled, frequency FROM nudge_settings WHERE telegram_id = ?",
+    args: [telegramId],
+  });
+  if (result.rows.length === 0) return; // No settings row — user hasn't been nudged yet
+  const row = result.rows[0];
+  if (!row.enabled) return;
+
+  const days = NUDGE_THRESHOLDS[row.frequency] || 3;
+  const next = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+  await db.execute({
+    sql: "UPDATE nudge_settings SET next_nudge_at = ?, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = ?",
+    args: [next, telegramId],
+  });
+}
+
+// --- User Summary ---
+
+/**
+ * Get the user's rolling summary.
+ * @param {string} telegramId
+ * @returns {Promise<{summary: string, messagesAtSummary: number} | null>}
+ */
+export async function getUserSummary(telegramId) {
+  const result = await db.execute({
+    sql: "SELECT summary, messages_at_summary FROM user_summary WHERE telegram_id = ?",
+    args: [telegramId],
+  });
+  if (result.rows.length === 0) return null;
+  return {
+    summary: result.rows[0].summary,
+    messagesAtSummary: Number(result.rows[0].messages_at_summary),
+  };
+}
+
+/**
+ * Upsert the user's rolling summary.
+ * @param {string} telegramId
+ * @param {string} summary
+ * @param {number} messageCount - total message count at time of summarization
+ */
+export async function upsertUserSummary(telegramId, summary, messageCount) {
+  await db.execute({
+    sql: `INSERT INTO user_summary (telegram_id, summary, messages_at_summary, updated_at)
+          VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+          ON CONFLICT(telegram_id) DO UPDATE SET
+            summary = ?,
+            messages_at_summary = ?,
+            updated_at = CURRENT_TIMESTAMP`,
+    args: [telegramId, summary, messageCount, summary, messageCount],
+  });
+}
+
+/**
+ * Get total message count for a user (user messages only).
+ * @param {string} telegramId
+ * @returns {Promise<number>}
+ */
+export async function getMessageCount(telegramId) {
+  const result = await db.execute({
+    sql: "SELECT COUNT(*) as count FROM messages WHERE telegram_id = ? AND role = 'user'",
+    args: [telegramId],
+  });
+  return Number(result.rows[0].count);
 }

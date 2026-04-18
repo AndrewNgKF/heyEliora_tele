@@ -27,19 +27,15 @@ function getNextRunAt(reminder) {
 }
 
 /**
- * Format the reminder payload for Telegram.
- * @param {{kind: string, source: string, content: string}} reminder
+ * Format the scheduled message payload for Telegram.
+ * @param {{kind: string, source: string, content: string}} msg
  */
-function formatReminderMessage(reminder) {
-  if (reminder.kind === "weekly_recap") {
-    return `📬 *Weekly recap*\n\n${reminder.content}`;
+function formatReminderMessage(msg) {
+  if (msg.kind === "nudge") {
+    return `👋 ${msg.content}`;
   }
 
-  if (reminder.kind === "reengagement_nudge") {
-    return `👋 *Quick nudge*\n\n${reminder.content}`;
-  }
-
-  return `⏰ *Reminder*\n\n${reminder.content}`;
+  return `⏰ *Reminder*\n\n${msg.content}`;
 }
 
 /**

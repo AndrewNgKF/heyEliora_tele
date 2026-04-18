@@ -78,7 +78,7 @@ Seven tables, all in Turso:
 - **Composers, not one big file:** grammY's Composer pattern splits handlers into separate files (commands, buttons) that get `bot.use()`'d in. Each file owns its domain. Middleware runs first, so handlers get `ctx.userId`, `ctx.replyMd()` for free.
 - **Tier-based usage limits without cron:** Daily reset is lazy — `checkUsage()` compares against today's date in the user's timezone. No scheduled job, no Redis. Just a date comparison on each message.
 - **Save messages after success, not before:** User message is only persisted to history after Claude responds successfully. Prevents malformed alternating-role sequences if the API fails mid-request.
-- **External cron, not always-on workers:** Vercel Hobby cron is too imprecise for reminders. A protected `/cron/reminders` endpoint is triggered by an external scheduler, while Turso remains the source of truth.
+- **External cron, not always-on workers:** Vercel Hobby cron is too imprecise for reminders. A protected `/cron/deliver` endpoint is triggered by an external scheduler, while Turso remains the source of truth.
 
 ## Deploy Setup
 
@@ -107,13 +107,13 @@ Notes:
 | `/`               | Landing page                        |
 | `/health`         | Health check                        |
 | `/webhook`        | Telegram webhook                    |
-| `/cron/reminders` | External cron trigger for reminders |
+| `/cron/deliver` | External cron trigger for scheduled messages |
 
 ### cron-job.org setup
 
 Create a job with:
 
-- **URL:** `https://your-domain.com/cron/reminders`
+- **URL:** `https://your-domain.com/cron/deliver`
 - **Method:** `POST`
 - **Header:** `x-cron-secret: <CRON_SECRET>`
 - **Timezone:** `UTC`

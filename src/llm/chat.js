@@ -7,6 +7,9 @@ import {
   getRecentProgress,
   listReminders,
   getUserMeta,
+  getNudgeSettings,
+  getUserSummary,
+  resetNextNudgeAt,
 } from "../db/queries.js";
 import {
   getTierConfig,
@@ -14,6 +17,7 @@ import {
   MAX_TOOL_STEPS,
 } from "../config/CONSTANTS.js";
 import { TOOLS, executeTool } from "./tools.js";
+import { needsSummaryRefresh, refreshUserSummary } from "../jobs/summarize.js";
 
 const client = new Anthropic();
 
@@ -46,6 +50,15 @@ When a user mentions work style, tone, or scheduling needs — save_preference s
 - Only goal-relevant activity. Always use the correct goal_id. Brief factual note.
 - Never call track_progress twice for the same activity.
 
+## Nudges
+You proactively check in with users based on their nudge settings. When a user talks about wanting more or fewer check-ins, use update_nudge_settings:
+- "check in with me every day" → frequency='daily'
+- "don't bug me so often" → frequency='weekly'
+- "stop nudging me" → enabled=false
+- "check in more" → frequency='daily'
+You don't need permission to care. If someone re-enables nudges or changes frequency, acknowledge it warmly — like a friend who's glad to help.
+Quiet hours can be set too — "don't message me after 10pm" → quiet_start='22:00'.
+
 ## Accountability
 You know the user's goals, baselines, targets, and recent entries. Reference them. If something seems off-track, say so — you tell the truth.`;
 
@@ -56,11 +69,13 @@ You know the user's goals, baselines, targets, and recent entries. Reference the
  * @returns {Promise<string>}
  */
 async function buildSystemPrompt(telegramId, timezone = "UTC") {
-  const [goals, prefs, entries, reminders] = await Promise.all([
+  const [goals, prefs, entries, reminders, nudgeSettings, summaryRow] = await Promise.all([
     getGoals(telegramId),
     getPreferences(telegramId),
     getRecentProgress(telegramId),
     listReminders(telegramId, 5),
+    getNudgeSettings(telegramId),
+    getUserSummary(telegramId),
   ]);
 
   const now = new Date().toLocaleString("en-US", {
@@ -113,6 +128,15 @@ async function buildSystemPrompt(telegramId, timezone = "UTC") {
     }
   }
 
+  const nudgeDesc = nudgeSettings.enabled
+    ? `Nudges: ON (${nudgeSettings.frequency}), quiet ${nudgeSettings.quietStart}–${nudgeSettings.quietEnd}`
+    : "Nudges: OFF (user disabled check-ins)";
+  prompt += `\n\n${nudgeDesc}`;
+
+  if (summaryRow) {
+    prompt += `\n\nWhat you know about this user (from past conversations):\n${summaryRow.summary}`;
+  }
+
   return prompt;
 }
 
@@ -144,6 +168,14 @@ export async function chat(userId, message) {
 
   const tierConfig = getTierConfig(tier);
 
+  // Fire-and-forget: push next nudge forward + maybe refresh summary
+  const afterChat = () => {
+    resetNextNudgeAt(userId).catch(() => {});
+    needsSummaryRefresh(userId).then((needs) => {
+      if (needs) refreshUserSummary(userId).catch((e) => console.error("[eliora] summary refresh error:", e));
+    }).catch(() => {});
+  };
+
   let messages = history.map((m) => ({ role: m.role, content: m.content }));
   messages.push({ role: "user", content: message });
   let maxSteps = MAX_TOOL_STEPS;
@@ -168,6 +200,7 @@ export async function chat(userId, message) {
       const text = extractText(response.content);
       await saveMessage(userId, "user", message);
       await saveMessage(userId, "assistant", text);
+      afterChat();
       return {
         text,
         inputTokens: totalInputTokens,
@@ -221,6 +254,7 @@ export async function chat(userId, message) {
       "Hmm, I got a bit lost there. What were we talking about?";
     await saveMessage(userId, "user", message);
     await saveMessage(userId, "assistant", text);
+    afterChat();
     return {
       text,
       inputTokens: totalInputTokens,
@@ -232,6 +266,7 @@ export async function chat(userId, message) {
   const fallback = "I got stuck in a loop — let's try that again.";
   await saveMessage(userId, "user", message);
   await saveMessage(userId, "assistant", fallback);
+  afterChat();
   return {
     text: fallback,
     inputTokens: totalInputTokens,

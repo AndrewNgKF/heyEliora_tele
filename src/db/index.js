@@ -67,7 +67,8 @@ export async function initDb() {
     )`,
     // schedule_type can be 'one_time', 'daily', or 'weekly'
     // status can be 'active', 'processing', 'sent', 'error', 'cancelled'
-    `CREATE TABLE IF NOT EXISTS reminders (
+    // kind: 'reminder' (user-set) | 'nudge' (system-generated)
+    `CREATE TABLE IF NOT EXISTS scheduled_messages (
       id TEXT PRIMARY KEY,
       telegram_id TEXT NOT NULL,
       kind TEXT NOT NULL DEFAULT 'reminder',
@@ -84,8 +85,30 @@ export async function initDb() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (goal_id) REFERENCES goals(id)
     )`,
-    `CREATE INDEX IF NOT EXISTS idx_reminders_user_status ON reminders(telegram_id, status, run_at)`,
-    `CREATE INDEX IF NOT EXISTS idx_reminders_due ON reminders(status, run_at)`,
+    `CREATE INDEX IF NOT EXISTS idx_scheduled_messages_user_status ON scheduled_messages(telegram_id, status, run_at)`,
+    `CREATE INDEX IF NOT EXISTS idx_scheduled_messages_due ON scheduled_messages(status, run_at)`,
+    // nudge_settings: one row per user, controls how/when Eliora checks in
+    // frequency: 'daily' | 'every_3_days' | 'weekly'
+    `CREATE TABLE IF NOT EXISTS nudge_settings (
+      telegram_id TEXT PRIMARY KEY,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      frequency TEXT NOT NULL DEFAULT 'every_3_days',
+      quiet_start TEXT DEFAULT '22:00',
+      quiet_end TEXT DEFAULT '08:00',
+      last_nudge_at TEXT,
+      next_nudge_at TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`,
+    // user_summary: rolling LLM-generated summary of who this person is
+    // rebuilt every N messages from conversation history
+    `CREATE TABLE IF NOT EXISTS user_summary (
+      telegram_id TEXT PRIMARY KEY,
+      summary TEXT NOT NULL,
+      messages_at_summary INTEGER NOT NULL DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`,
   ]);
 
   console.log("[eliora] database initialized");

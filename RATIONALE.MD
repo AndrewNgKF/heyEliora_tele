@@ -25,8 +25,6 @@ When a user refines or changes a goal, Eliora updates the existing one instead o
 - Duplicates confuse accountability. Two weight loss goals = which one do entries count toward?
 - Eliora sees goal IDs in her system prompt and is instructed to check existing goals before saving.
 
-Removed goals are soft-deleted (`active = 0`) so historical entries still reference them correctly.
-
 ---
 
 ## Eliora Decides What to Track
@@ -51,3 +49,45 @@ Use `@anthropic-ai/sdk` directly instead of Vercel AI SDK's abstraction.
 - Single-provider project (Claude) — the abstraction layer added complexity without benefit.
 - Anthropic's native tool format works without any schema library.
 - If multi-provider support is needed later, the AI SDK can be re-introduced.
+
+---
+
+## Nudges Are Separate From Reminders
+
+Reminders and nudges are different concepts in the user's mental model, so they're designed separately.
+
+- **Reminder** = "I asked you to tell me something." User-initiated, explicit, transactional.
+- **Nudge** = "You noticed something and checked in." Eliora-initiated, contextual, relational.
+
+If they were merged, "stop reminding me" would be ambiguous — do they mean the alarm for their meeting, or the goal check-ins?
+
+### How nudges work
+
+1. **`nudge_settings` table** — one row per user. Controls `enabled` (bool), `frequency` (`daily` / `every_3_days` / `weekly`), `quiet_start` / `quiet_end` (no nudges during sleep), `last_nudge_at` (cooldown tracking). Defaults to enabled, every 3 days, quiet 22:00–08:00. Created lazily.
+
+2. **`/cron/nudges` endpoint** — runs every few hours via external scheduler. For each user with nudges enabled:
+   - Checks quiet hours (respects user timezone)
+   - Checks cooldown (enough time since last nudge, based on frequency)
+   - Checks inactivity (user hasn't messaged within the frequency threshold)
+   - Checks no pending nudge already in queue
+   - If all pass → loads goals + recent progress → Claude generates a contextual message → inserts into `scheduled_messages` with `kind='nudge'`, `source='system'`
+
+3. **`/cron/deliver` endpoint** — the existing delivery job picks up all due `scheduled_messages` (reminders + nudges) and sends them. Nudges format as `👋 {message}`, reminders as `⏰ *Reminder*`.
+
+4. **LLM-generated content** — nudges aren't templates. Claude writes each one based on the user's actual goals and recent activity. Like a friend who remembers "you said you'd start running this week" and asks how it went. First nudge includes a self-aware note: *"I'll check in like this from time to time — just tell me if you want more or less of it."*
+
+5. **Conversational control** — no `/nudgesettings` command. Users adjust nudges by talking naturally:
+   - "Check in with me every day" → `update_nudge_settings(frequency: 'daily')`
+   - "Don't bug me so often" → `update_nudge_settings(frequency: 'weekly')`
+   - "Stop nudging me" → `update_nudge_settings(enabled: false)`
+   - "Don't message me after 10pm" → `update_nudge_settings(quiet_start: '22:00')`
+
+### Why default ON
+
+A friend doesn't ask permission to care. The first nudge demonstrates value before asking the user to configure anything. Users who'd benefit most from nudges are exactly the ones who'd preemptively turn them off if asked upfront.
+
+### Two-phase cron: generate then send
+
+Nudge generation (LLM call, slow) and delivery (Telegram API, fast) are separate cron jobs. This keeps the delivery job simple and fast — it doesn't care whether the message is a user reminder or a system nudge. Both live in `scheduled_messages`, both get delivered the same way.
+
+**Principle:** Nudges are what make Eliora feel like a friend, not a tool. They're the difference between "an app I check" and "someone who has my back."
