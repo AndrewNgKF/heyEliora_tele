@@ -44,13 +44,13 @@ cp .env.example .env
 
 Fill in `.env`:
 
-| Variable | Where to get it |
-|----------|----------------|
-| `BOT_TOKEN` | BotFather (step 1) |
-| `ANTHROPIC_API_KEY` | Anthropic console (step 2) |
-| `TURSO_URL` | `turso db show` output (step 3) |
-| `TURSO_TOKEN` | `turso db tokens create` output (step 3) |
-| `CRON_SECRET` | Any random string — used to protect cron endpoints |
+| Variable            | Where to get it                                    |
+| ------------------- | -------------------------------------------------- |
+| `BOT_TOKEN`         | BotFather (step 1)                                 |
+| `ANTHROPIC_API_KEY` | Anthropic console (step 2)                         |
+| `TURSO_URL`         | `turso db show` output (step 3)                    |
+| `TURSO_TOKEN`       | `turso db tokens create` output (step 3)           |
+| `CRON_SECRET`       | Any random string — used to protect cron endpoints |
 
 Then start:
 

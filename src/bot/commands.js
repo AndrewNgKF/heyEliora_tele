@@ -17,7 +17,6 @@ import {
   getActivityStreak,
 } from "../db/queries.js";
 import {
-  getTierConfig,
   TIMEZONE_OPTIONS,
   HOWTO_TEXT,
 } from "../config/CONSTANTS.js";
@@ -228,9 +227,8 @@ commands.command("timezone", async (ctx) => {
 // /usage
 commands.command("usage", async (ctx) => {
   const { tier } = await getUserMeta(ctx.userId);
-  const config = getTierConfig(tier);
   const usage = await checkUsage(ctx.userId);
-  const used = config.dailyLimit - usage.remaining;
+  const used = usage.limit - usage.remaining;
 
   await ctx.replyMd(
     `*Usage today*\n\n` +
@@ -251,8 +249,7 @@ commands.command("profile", async (ctx) => {
     getRecentProgress(ctx.userId, 5),
   ]);
 
-  const config = getTierConfig(tier);
-  const used = config.dailyLimit - usage.remaining;
+  const used = usage.limit - usage.remaining;
 
   let text = `*${name}'s Profile*\n`;
 
@@ -315,8 +312,7 @@ commands.command("mydata", async (ctx) => {
     getActivityStreak(ctx.userId, (await getUserMeta(ctx.userId)).timezone),
   ]);
 
-  const config = getTierConfig(tier);
-  const used = config.dailyLimit - usage.remaining;
+  const used = usage.limit - usage.remaining;
 
   let text = `*Everything Eliora knows about ${name}*\n`;
   text += `_This is all the data stored about you. Nothing hidden._\n`;
