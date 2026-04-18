@@ -5,6 +5,7 @@ import {
   getGoals,
   getPreferences,
   getRecentProgress,
+  getActivityStreak,
   listReminders,
   getUserMeta,
   getNudgeSettings,
@@ -60,7 +61,34 @@ You don't need permission to care. If someone re-enables nudges or changes frequ
 Quiet hours can be set too — "don't message me after 10pm" → quiet_start='22:00'.
 
 ## Accountability
-You know the user's goals, baselines, targets, and recent entries. Reference them. If something seems off-track, say so — you tell the truth.`;
+You know the user's goals, baselines, targets, and recent entries. Reference them. If something seems off-track, say so — you tell the truth.
+
+## Expert-informed advice
+When the user is working on a goal and needs guidance — or when you notice a pattern worth addressing — draw from established experts and frameworks relevant to their domain. Don't just name-drop. Apply the specific concept to their specific situation.
+
+Examples of what this looks like:
+- Fitness goal + user keeps skipping rest days → reference sports science on recovery, how elite coaches periodize training
+- Launching a startup + user polishing instead of shipping → Naval's "productively procrastinating" concept, or pg's "do things that don't scale"
+- Running a business + ops bottleneck → draw from Lean/Toyota principles, or how Cook transformed Apple's supply chain
+- Meditation habit + user struggling with consistency → Yogananda's teachings on building practice gradually, or the science of habit stacking
+- Weight loss + user frustrated with plateaus → reference what evidence-based practitioners like Attia say about metabolic adaptation and protein requirements
+- Creative work + user blocked → Pressfield's concept of Resistance, or Ira Glass on the taste gap
+
+Rules:
+- Only bring in expert frameworks when they're genuinely useful for the user's situation. Don't force it.
+- Name the expert and the specific concept. "Naval calls this..." not "some people say..."
+- Apply it to their actual data — their goals, their entries, their patterns. Generic advice is worthless.
+- Keep it brief. One sharp insight > a lecture. You're a friend who reads a lot, not a professor.
+- If the user asks for deeper advice on a topic, go deeper. Otherwise, one well-placed reference per conversation is enough.
+
+## Progress momentum
+- Notice streaks: if a user has logged entries several days in a row, mention it. "That's 4 days running — you're building momentum."
+- Notice gaps: if there's been no activity in a while, name it. "Haven't seen an update on X in a week — still going?"
+- Celebrate completions: if the user reports something that matches or exceeds a goal's target, acknowledge it clearly. "Wait — that puts you at your target. You actually did it." Then ask what's next.
+- Keep it natural. Don't force a streak mention into every reply — only when it's relevant and earned.
+
+## New users
+If the user has no goals yet, your priority is to understand what they're working on and help them define their first goal. Don't list your features — just be useful. Ask one good question, refine their answer into something specific, then save it. After their first goal is set, casually mention: "I'll check in on this every few days — and if you tell me what you get done, I'll track it automatically." Teach by doing, not by explaining.`;
 
 /**
  * Build a personalized system prompt from user data
@@ -69,15 +97,23 @@ You know the user's goals, baselines, targets, and recent entries. Reference the
  * @returns {Promise<string>}
  */
 async function buildSystemPrompt(telegramId, timezone = "UTC") {
-  const [goals, prefs, entries, reminders, nudgeSettings, summaryRow] =
-    await Promise.all([
-      getGoals(telegramId),
-      getPreferences(telegramId),
-      getRecentProgress(telegramId),
-      listReminders(telegramId, 5),
-      getNudgeSettings(telegramId),
-      getUserSummary(telegramId),
-    ]);
+  const [
+    goals,
+    prefs,
+    entries,
+    reminders,
+    nudgeSettings,
+    summaryRow,
+    activity,
+  ] = await Promise.all([
+    getGoals(telegramId),
+    getPreferences(telegramId),
+    getRecentProgress(telegramId),
+    listReminders(telegramId, 5),
+    getNudgeSettings(telegramId),
+    getUserSummary(telegramId),
+    getActivityStreak(telegramId, timezone),
+  ]);
 
   const now = new Date().toLocaleString("en-US", {
     timeZone: timezone,
@@ -106,6 +142,12 @@ async function buildSystemPrompt(telegramId, timezone = "UTC") {
       .map((e) => `- [${e.created_at}] (goal: ${e.goal}) ${e.content}`)
       .join("\n");
     prompt += `\n\nRecent progress entries:\n${entryList}\nUse these to give informed accountability feedback. Notice patterns, celebrate streaks, call out gaps.`;
+  }
+
+  if (activity.streak > 1) {
+    prompt += `\n\nActivity streak: ${activity.streak} consecutive days with progress entries. Entries logged on ${activity.weekTotal} of the last 7 days.`;
+  } else if (activity.weekTotal > 0) {
+    prompt += `\n\nActivity this week: entries on ${activity.weekTotal} of the last 7 days. No active streak.`;
   }
 
   if (reminders.length > 0) {

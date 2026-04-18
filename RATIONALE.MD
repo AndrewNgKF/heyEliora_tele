@@ -91,3 +91,48 @@ A friend doesn't ask permission to care. The first nudge demonstrates value befo
 Nudge generation (LLM call, slow) and delivery (Telegram API, fast) are separate cron jobs. This keeps the delivery job simple and fast — it doesn't care whether the message is a user reminder or a system nudge. Both live in `scheduled_messages`, both get delivered the same way.
 
 **Principle:** Nudges are what make Eliora feel like a friend, not a tool. They're the difference between "an app I check" and "someone who has my back."
+
+---
+
+## The Dopamine Loop (Why Users Come Back)
+
+Apple Reminders fires and forgets. Todoist gives you checkboxes. Neither one _cares_ whether you follow through. Eliora's moat is the closed loop: goal → tracking → streak → accountability → celebration.
+
+### Why this matters
+
+The user doesn't come back because Eliora has features. They come back because:
+
+1. **Streaks create momentum.** `getActivityStreak()` computes consecutive days with entries. This shows up in the system prompt so Eliora can say "that's 5 days running." Duolingo proved that streaks are the single highest-leverage retention mechanic. Ours is earned — it only counts real progress entries, not logins.
+
+2. **Completion gets celebrated.** When `track_progress` logs an entry that hits a goal's target, the system prompt tells Eliora to recognize it: "You actually did it." This is the confetti moment. Most productivity tools treat completion as silent — the task disappears. Eliora makes it a moment.
+
+3. **Nudges reference real data.** Generic push notifications ("Don't forget your goals!") get ignored. Eliora's nudges reference the user's actual goals, recent entries, and streak status. "You had 4 days running on that gym goal — don't break it now" hits different than "Time to check in!"
+
+4. **Knowledge accumulates.** Every conversation makes the next one smarter (rolling summaries, preferences, entries). Apple Reminders on day 365 is identical to day 1. Eliora on day 365 knows your avoidance patterns.
+
+### Design decisions
+
+- **Streaks count entry days, not login days.** Opening the app shouldn't count. Telling Eliora what you did should.
+- **Completion detection is prompt-based, not code-based.** The LLM reads the goal target and the latest entry and decides if it's a match. This handles fuzzy targets ("get comfortable cooking") that code can't parse.
+- **/start asks a question, not makes a statement.** "What's the one thing you're trying to get done this month?" gets the user talking immediately. The first reply becomes the first goal. Zero-friction onboarding.
+- **Static nudge messages for empty users ask the same question as /start.** Consistency — whether you arrived via /start or via a nudge, you get the same easy entry point.
+
+**Principle:** Eliora is sticky because she closes the loop. You tell her what you're doing → she tracks it → she notices patterns → she calls you out → you feel seen → you come back.
+
+---
+
+## UX: Simplicity Over Features
+
+### Conversational /start
+
+The /start message doesn't explain what Eliora can do. It asks what _you're_ working on. Features are discovered through use, not through a feature list. The single fallback button ("Not sure yet — tell me more") links to a brief howto, but most users should just answer the question.
+
+### Minimal command menu
+
+12 commands → 5. The commands that remain (`start`, `goals`, `whatsup`, `reminders`, `forget`) are the ones that need dedicated UI. Everything else (`/remind`, `/timezone`, `/preferences`, `/profile`, `/progress`, `/usage`, `/howto`) still works — the handlers exist for power users — but new users don't see them. Less choice = less paralysis.
+
+### Emoji discipline
+
+Functional emoji only: 👋 on nudges (identifies message type), ⏰ on reminders (same). Decorative emoji stripped. If it doesn't serve a purpose, it's clutter.
+
+**Principle:** If you have to explain your product with a feature list, your onboarding has already failed. Demonstrate value in the first exchange.

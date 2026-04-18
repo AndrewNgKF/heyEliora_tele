@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>heyEliora - Your Agentic AI in Telegram</title>
+    <title>heyEliora - Your Personal Agentic AI in Telegram</title>
     <meta
       name="description"
-      content="An Agentic AI assistant that lives in Telegram, learns how you work, and keeps you accountable to your goals. Open source, Powered by Claude by Anthropic."
+      content="A personal agentic AI in Telegram. She remembers your goals, tracks your streaks, draws from world-class experts, and keeps you accountable. Open source."
     />
 
     <!-- Favicon -->
@@ -23,7 +23,7 @@
     />
     <meta
       property="og:description"
-      content="A personal AI assistant in Telegram. She remembers your goals, tracks progress, and keeps you accountable."
+      content="A personal agentic AI in Telegram. She remembers your goals, tracks your streaks, draws from world-class experts, and keeps you accountable."
     />
     <meta property="og:image" content="https://heyeliora.com/og-image.png" />
     <meta property="og:url" content="https://heyeliora.com" />
@@ -37,7 +37,7 @@
     />
     <meta
       name="twitter:description"
-      content="A personal AI assistant in Telegram. She remembers your goals and keeps you accountable."
+      content="A personal agentic AI in Telegram. She remembers your goals, tracks your streaks, draws from world-class experts, and keeps you accountable."
     />
     <meta name="twitter:image" content="https://heyeliora.com/og-image.png" />
 
@@ -74,9 +74,11 @@
         <div class="hero-text">
           <h1>Every AI knows the world.<br /><em>Eliora knows you.</em></h1>
           <p class="lead">
-            An Agentic AI assistant that lives in Telegram. She learns how you
-            work, keeps you honest about your goals, and actually does things —
-            not just talks about them.
+            A personal agentic AI that lives in Telegram. She
+            <strong>remembers your goals</strong>, tracks your streaks, draws
+            from world-class experts to advise you, and
+            <strong>calls you out when you drift</strong>. Not a chatbot.
+            <strong>An AI that acts.</strong>
           </p>
           <div class="hero-actions">
             <a
@@ -119,34 +121,233 @@
                 <div class="tg-contact-status">online</div>
               </div>
             </div>
-            <div class="tg-messages">
-              <div class="tg-bubble tg-out">
-                <p>I finished the landing page but it took all week 😅</p>
-                <span class="tg-time"
-                  >2:32 PM <span class="tg-check">✓✓</span></span
-                >
+            <div class="tg-messages-carousel">
+              <div
+                class="tg-messages tg-scene active"
+                data-label="founder scaling a team"
+              >
+                <div class="tg-bubble tg-in">
+                  <p>
+                    You said you'd send that offer letter by Wednesday. It's
+                    Thursday. What happened?
+                  </p>
+                  <span class="tg-time">9:14 AM</span>
+                </div>
+                <div class="tg-bubble tg-out">
+                  <p>
+                    Client needed the marketing deck revised, ate my whole day
+                  </p>
+                  <span class="tg-time"
+                    >10:02 AM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    That's the third time in two weeks you've delayed the hire
+                    for client work. Your target is
+                    <strong>"team of 4 by Q3"</strong> — you're at 2, and Q3 is
+                    11 weeks out.
+                  </p>
+                  <p>
+                    Last Tuesday you said
+                    <em>"I can't keep doing everything myself."</em>
+                    The deck can wait. The hire can't.
+                  </p>
+                  <span class="tg-time">10:02 AM</span>
+                </div>
+                <div class="tg-bubble tg-out">
+                  <p>I know I know</p>
+                  <span class="tg-time"
+                    >10:03 AM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    Pressfield calls this <em>Resistance</em> — you keep
+                    choosing the urgent thing over the important one. One email.
+                    Send the offer today. I'll check in at 5.
+                  </p>
+                  <span class="tg-time">10:03 AM</span>
+                </div>
+                <div class="tg-bubble tg-out">
+                  <p>Ok sending it now</p>
+                  <span class="tg-time"
+                    >10:04 AM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    Good. 12 days of progress logged, by the way — don't let one
+                    avoided task overshadow real momentum.
+                  </p>
+                  <span class="tg-time">10:04 AM</span>
+                </div>
               </div>
-              <div class="tg-bubble tg-in">
-                <p>
-                  Nice progress! But your target was
-                  <strong>"MVP by June 1"</strong> and you spent 8 days on the
-                  page. Auth still needs work.
-                </p>
-                <p>Switch to auth tomorrow?</p>
-                <span class="tg-time">2:32 PM</span>
+
+              <div
+                class="tg-messages tg-scene"
+                data-label="student preparing for exams"
+              >
+                <div class="tg-bubble tg-out">
+                  <p>Did 2 hours of math today 💪</p>
+                  <span class="tg-time"
+                    >6:15 PM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    Math again — that's 6 of the last 7 days. Reading
+                    comprehension? Twice in two weeks.
+                  </p>
+                  <p>
+                    Your mock scores: math 720, reading 580. Target is
+                    <strong>1400+</strong>. The gap is in reading, not math.
+                  </p>
+                  <span class="tg-time">6:15 PM</span>
+                </div>
+                <div class="tg-bubble tg-out">
+                  <p>Reading is just so boring I zone out after like 10 min</p>
+                  <span class="tg-time"
+                    >6:16 PM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    That's exactly why it's your bottleneck. Cal Newport calls
+                    this <em>pseudo-productivity</em> — math feels like work but
+                    it's not moving your score.
+                  </p>
+                  <p>
+                    You mentioned last week you focus best in the morning. Try
+                    20 min of reading first, before math. Use that window.
+                  </p>
+                  <span class="tg-time">6:16 PM</span>
+                </div>
+                <div class="tg-bubble tg-out">
+                  <p>Ugh fine. Reading first tomorrow</p>
+                  <span class="tg-time"
+                    >6:17 PM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    9 consecutive study days. That consistency is rare — now
+                    point it at the right thing.
+                  </p>
+                  <span class="tg-time">6:17 PM</span>
+                </div>
               </div>
-              <div class="tg-bubble tg-out">
-                <p>…you're right.</p>
-                <span class="tg-time"
-                  >2:33 PM <span class="tg-check">✓✓</span></span
-                >
+
+              <div
+                class="tg-messages tg-scene"
+                data-label="meditator deepening their practice"
+              >
+                <div class="tg-bubble tg-in">
+                  <p>You haven't logged a session in 3 days. Everything ok?</p>
+                  <span class="tg-time">6:30 AM</span>
+                </div>
+                <div class="tg-bubble tg-out">
+                  <p>
+                    Yeah I have been sitting, just really distracted. Didn't
+                    feel worth logging
+                  </p>
+                  <span class="tg-time"
+                    >7:45 AM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    Log them. Yogananda taught that restless meditation is still
+                    meditation — the act of sitting is what matters, not the
+                    quality of silence.
+                  </p>
+                  <p>
+                    Before the gap you had 18 consecutive days — your longest
+                    streak. You were at 20 minutes, target is
+                    <strong>"45 min daily by June."</strong>
+                  </p>
+                  <span class="tg-time">7:45 AM</span>
+                </div>
+                <div class="tg-bubble tg-out">
+                  <p>18 days?? I thought it was like 10</p>
+                  <span class="tg-time"
+                    >7:46 AM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    That's why I track it. Two weeks ago you told me
+                    <em
+                      >"the mornings I sit, the whole day feels different."</em
+                    >
+                    Trust that.
+                  </p>
+                  <p>
+                    22 minutes today — just enough to restart the streak. I'll
+                    check in tonight.
+                  </p>
+                  <span class="tg-time">7:46 AM</span>
+                </div>
+                <div class="tg-bubble tg-out">
+                  <p>Ok 22 min. Doing it now before work</p>
+                  <span class="tg-time"
+                    >7:47 AM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
               </div>
-              <div class="tg-bubble tg-in">
-                <p>
-                  That's the pattern — you polish fun stuff when a hard task is
-                  next. Auth tomorrow. I'll check in. 💪
-                </p>
-                <span class="tg-time">2:33 PM</span>
+
+              <div
+                class="tg-messages tg-scene"
+                data-label="someone on a weight loss journey"
+              >
+                <div class="tg-bubble tg-out">
+                  <p>
+                    83kg again. Third week same number. Eating clean, gym
+                    4x/week. What am I doing wrong
+                  </p>
+                  <span class="tg-time"
+                    >8:10 AM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    Zoom out. You were 88kg six weeks ago. 5kg down and
+                    plateauing isn't failure — it's your body adapting.
+                  </p>
+                  <span class="tg-time">8:10 AM</span>
+                </div>
+                <div class="tg-bubble tg-out">
+                  <p>Yeah but three weeks of nothing is frustrating</p>
+                  <span class="tg-time"
+                    >8:11 AM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    Not nothing — 28 sessions in 42 days. That's real
+                    consistency. The training isn't the problem.
+                  </p>
+                  <p>
+                    But I noticed your food logs say <em>"ate clean"</em> 14
+                    times without ever mentioning protein grams. Attia's
+                    framework: if you're not measuring protein, you're guessing
+                    on the one variable that matters most in a plateau.
+                  </p>
+                  <span class="tg-time">8:11 AM</span>
+                </div>
+                <div class="tg-bubble tg-out">
+                  <p>Honestly no I haven't been tracking protein at all</p>
+                  <span class="tg-time"
+                    >8:12 AM <span class="tg-check">✓✓</span></span
+                  >
+                </div>
+                <div class="tg-bubble tg-in">
+                  <p>
+                    Start today — just note the grams when you log meals. I'll
+                    track the pattern. One variable at a time.
+                  </p>
+                  <span class="tg-time">8:12 AM</span>
+                </div>
               </div>
             </div>
             <div class="tg-input-bar">
@@ -155,7 +356,39 @@
               <span class="tg-mic">🎤</span>
             </div>
           </div>
-          <span class="hero-annotation">↑ she actually remembers you</span>
+          <div class="scene-nav">
+            <button class="scene-arrow" id="scene-prev" aria-label="Previous">
+              ‹
+            </button>
+            <span class="scene-label-text" id="scene-label"
+              >founder scaling a team</span
+            >
+            <button class="scene-arrow" id="scene-next" aria-label="Next">
+              ›
+            </button>
+          </div>
+          <div class="scene-dots">
+            <button
+              class="scene-dot active"
+              data-index="0"
+              aria-label="Scene 1"
+            ></button>
+            <button
+              class="scene-dot"
+              data-index="1"
+              aria-label="Scene 2"
+            ></button>
+            <button
+              class="scene-dot"
+              data-index="2"
+              aria-label="Scene 3"
+            ></button>
+            <button
+              class="scene-dot"
+              data-index="3"
+              aria-label="Scene 4"
+            ></button>
+          </div>
         </div>
       </div>
     </section>
@@ -165,30 +398,34 @@
       <div class="container">
         <div class="letter">
           <p>Hey —</p>
-          <p>Let's be honest about AI assistants.</p>
           <p>
-            ChatGPT is great at knowing things. Claude is great at writing
-            things. But ask either one what you should <em>actually</em> be
-            working on right now? Blank stare.
+            You probably know what you should be focusing on right now. Most
+            people do. The problem was never information, it's that nothing in
+            your life connects the dots.
           </p>
           <p>
-            They don't know your goals. They don't know you bombed your workout
-            streak last week. They don't know you keep putting off that investor
-            email.
+            You set goals. You make progress. Then life gets busy, you drift,
+            and nothing notices. You open ChatGPT, re-explain your situation for
+            the tenth time, get solid advice, and forget it by Tuesday.
           </p>
           <p>
-            They know the world, but they don't know <em>you</em>. And every
-            conversation starts from scratch.
+            I built Eliora because I wanted something that would
+            <em>notice</em>. Something that remembers what I said last week,
+            tracks whether I'm actually doing the thing, and calls me out when
+            I'm not, without me having to ask.
           </p>
           <p>
-            Eliora is different. She lives in Telegram. She remembers your
-            goals, tracks your progress, learns your work style, and calls you
-            out when you're avoiding the hard stuff.
+            She's not smarter than ChatGPT. She just <em>pays attention</em>.
+            She knows your goals, sees your patterns, and messages you when you
+            go quiet on the thing you said matters most. She pulls from the
+            right expert and applies it to your actual situation.
           </p>
           <p>
-            Tell her you want to launch by September. She'll remember. She'll
-            check in. She'll notice when you're spending all your time on
-            Twitter instead of shipping. And she'll say something about it.
+            Whether you're running a company, studying for exams, or trying to
+            break a weight loss plateau, the value is the same. An Agentic AI
+            who knows your quirks, tracks your progress, gives you timely
+            nudges, and keeps you accountable. No dashboards, no check-ins to
+            set up. Just open Telegram and text normally.
           </p>
           <p>
             Give her five minutes. If she doesn't earn the next five, no hard
@@ -205,40 +442,41 @@
     <!-- THE PITCH -->
     <section class="pitch-section">
       <div class="container">
-        <h2>Why Eliora exists.</h2>
+        <h2>What makes Eliora different.</h2>
 
         <div class="pitch-point">
-          <h3>
-            She remembers what you're working toward
-            <span class="hand">— always.</span>
-          </h3>
+          <h3>She reaches out to <span class="hand">you.</span></h3>
           <p>
-            Tell Eliora your goals with real baselines and targets. She tracks
-            your progress across conversations, across weeks. Most AI resets
-            every chat. Eliora compounds.
+            Most tools wait for you to open them. Eliora doesn't. She checks in
+            based on your goals and activity — "You had 4 days running on that
+            gym streak. Don't break it now." Like a friend who actually pays
+            attention.
           </p>
         </div>
 
         <div class="pitch-point">
           <h3>
-            She does things, not just <span class="squiggle">says</span> things.
+            Expert advice, applied to <span class="squiggle">your</span>
+            situation.
           </h3>
           <p>
-            Eliora is an agentic AI — she doesn't just answer questions, she
-            takes action. She saves goals, tracks progress, logs preferences —
-            silently, in the background, while you talk. She's not a chatbot you
-            query. She's an assistant that acts.
+            Hitting a weight loss plateau? Eliora draws from domain experts —
+            not generic tips, but frameworks applied to your actual data. Doing
+            something hard? Eliora references the exact mental models that
+            world-class performers use to get unstuck. It's like having a mentor
+            who actually knows what you're working on and how to help.
           </p>
         </div>
 
         <div class="pitch-point">
-          <h3>
-            She tells you what you <span class="hand">need</span> to hear.
-          </h3>
+          <h3>She sees patterns <span class="hand">you don't.</span></h3>
           <p>
-            If you said you'd exercise 4x a week and you've done it once, she'll
-            say so. If you're spending time on busywork while your real goal
-            collects dust, she'll point it out. Gently. But she'll point it out.
+            Eliora tracks your progress as you talk — streaks, gaps, avoidance
+            patterns, momentum shifts. And she compounds. Day 1, she's helpful.
+            Day 30, she knows your work style, your habits, and which advice
+            actually lands. She adapts to your tone — blunt if you want blunt,
+            gentle if you need gentle. Apple Reminders on day 365 is identical
+            to day 1.
           </p>
         </div>
 
@@ -257,8 +495,9 @@
           </h3>
           <p>
             Read every line of code. Self-host it. Or use the hosted version.
-            Delete everything with one command. In a world of AI trust issues,
-            transparency isn't optional.
+            Type <code>/mydata</code> anytime to see everything Eliora knows
+            about you — goals, preferences, her internal notes, all of it.
+            Delete everything with <code>/forget</code>. No hidden data.
           </p>
         </div>
       </div>
@@ -319,9 +558,11 @@
             <h3>Free</h3>
             <div class="price">$0</div>
             <ul>
-              <li>5 messages per day</li>
+              <li>15 messages/day for first 3 days</li>
+              <li>5 messages per day after</li>
               <li>Goal tracking + accountability</li>
-              <li>Progress logging</li>
+              <li>Proactive check-ins</li>
+              <li>Expert-informed advice</li>
               <li>Self-host for unlimited</li>
             </ul>
             <a
@@ -339,9 +580,10 @@
             <div class="price">$9 <span>/month</span></div>
             <ul>
               <li>100 messages per day</li>
-              <li>Smarter model</li>
-              <li>Future integrations</li>
-              <li>Full personalization</li>
+              <li>Deeper conversations, longer replies</li>
+              <li>Priority nudges + check-ins</li>
+              <li>Full pattern recognition over time</li>
+              <li>Future integrations (calendar, email)</li>
             </ul>
             <a href="#" class="cta-plan cta-plan-primary">Get Pro</a>
           </div>
@@ -402,9 +644,10 @@
         <details>
           <summary>Is my data safe?</summary>
           <p>
-            Self-host and we never see it. On the hosted version, you can wipe
-            everything with <code>/forget</code>. The code is open source —
-            audit exactly what gets stored.
+            Type <code>/mydata</code> to see everything Eliora knows about you —
+            goals, preferences, activity, even her internal notes. Type
+            <code>/forget</code> to wipe it all. Self-host and we never see it.
+            The code is open source — audit exactly what gets stored.
           </p>
         </details>
 
@@ -429,17 +672,22 @@
           <summary>How is this different from ChatGPT?</summary>
           <p>
             ChatGPT forgets you after every conversation. Eliora remembers your
-            goals, tracks progress over weeks, learns your work style, and holds
-            you accountable. She's not an everything-machine — she's
-            <em>your</em> machine.
+            goals, tracks your streaks, notices your avoidance patterns, and
+            reaches out to you proactively when you go quiet. She also draws
+            from domain experts — Attia for health, Naval for startups,
+            Pressfield for creative work — and applies their frameworks to
+            <em>your</em> specific situation. She's not an everything-machine.
+            She's your personal agentic AI.
           </p>
         </details>
 
         <details>
           <summary>Will she support calendar, email, docs?</summary>
           <p>
-            That's the plan. Reminders and scheduling are next, then document
-            reading, then Google Calendar and Gmail. Roadmap is on GitHub.
+            Calendar and email integrations are on the roadmap. But honestly,
+            you already have a calendar app. What you don't have is something
+            that connects your calendar to your goals and tells you when you're
+            spending time on the wrong things. That's where Eliora is headed.
           </p>
         </details>
       </div>
@@ -448,9 +696,11 @@
     <!-- FINAL CTA -->
     <section class="final-cta" id="get-started">
       <div class="container">
-        <h2>You wouldn't be here if your current setup was working.</h2>
+        <h2>
+          You've read this far. <span class="hand">That says something.</span>
+        </h2>
         <p class="lead">
-          Give Eliora five minutes. Tell her one goal. See if she earns the next
+          Tell her one goal. Give her five minutes. See if she earns the next
           five.
         </p>
         <span class="hand">seriously, just try it ↓</span>
@@ -479,5 +729,46 @@
         <p class="mt-1">© 2026 heyEliora</p>
       </div>
     </footer>
+    <script>
+      (() => {
+        const scenes = document.querySelectorAll(".tg-scene");
+        const dots = document.querySelectorAll(".scene-dot");
+        const label = document.getElementById("scene-label");
+        const prevBtn = document.getElementById("scene-prev");
+        const nextBtn = document.getElementById("scene-next");
+        let current = 0;
+        let timer;
+
+        function show(index) {
+          scenes[current].classList.remove("active");
+          dots[current].classList.remove("active");
+          current = ((index % scenes.length) + scenes.length) % scenes.length;
+          scenes[current].classList.add("active");
+          dots[current].classList.add("active");
+          label.textContent = scenes[current].dataset.label;
+        }
+
+        function resetAndShow(index) {
+          clearInterval(timer);
+          show(index);
+          startTimer();
+        }
+
+        function startTimer() {
+          timer = setInterval(() => show(current + 1), 10000);
+        }
+
+        prevBtn.addEventListener("click", () => resetAndShow(current - 1));
+        nextBtn.addEventListener("click", () => resetAndShow(current + 1));
+
+        dots.forEach((dot) =>
+          dot.addEventListener("click", () =>
+            resetAndShow(Number(dot.dataset.index)),
+          ),
+        );
+
+        startTimer();
+      })();
+    </script>
   </body>
 </html>

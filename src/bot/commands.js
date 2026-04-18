@@ -11,6 +11,9 @@ import {
   checkUsage,
   incrementUsage,
   getUserMeta,
+  getUserSummary,
+  getNudgeSettings,
+  getActivityStreak,
 } from "../db/queries.js";
 import {
   getTierConfig,
@@ -29,21 +32,14 @@ export const commands = new Composer();
 commands.command("start", async (ctx) => {
   const name = ctx.userName || "there";
 
-  const keyboard = new InlineKeyboard()
-    .text("Set a goal 🎯", "action:setgoal")
-    .text("What can you do? 💡", "action:howto")
-    .row()
-    .text("My goals 📋", "action:goals")
-    .text("Check-in 👋", "action:whatsup");
+  const keyboard = new InlineKeyboard().text(
+    "Not sure yet — tell me more",
+    "action:howto",
+  );
 
   await ctx.replyMd(
-    `Hey ${name}! I'm *Eliora* — your personal AI assistant.\n\n` +
-      `I live right here in Telegram. Tell me what you're working on, what you want to achieve, or what's on your plate — and I'll help you stay sharp.\n\n` +
-      `🎯 *Goals* — I'll help you define them clearly and track your progress\n` +
-      `📊 *Accountability* — honest check-ins based on what you're actually doing\n` +
-      `🧠 *Memory* — I remember your goals, preferences, and context\n\n` +
-      `⏰ *Reminders* — I'll nudge you about important stuff at the right time\n\n` +
-      `Just talk to me like you would a friend. I'll figure out the rest.`,
+    `Hey ${name}. I'm *Eliora* — I remember what you're working on and I won't let you off the hook.\n\n` +
+      `What's the one thing you're trying to get done this month?`,
     { reply_markup: keyboard },
   );
 });
@@ -56,11 +52,7 @@ commands.command("forget", async (ctx) => {
 
 // /howto
 commands.command("howto", async (ctx) => {
-  const keyboard = new InlineKeyboard()
-    .text("Set a goal 🎯", "action:setgoal")
-    .text("Check-in 👋", "action:whatsup");
-
-  await ctx.replyMd(HOWTO_TEXT, { reply_markup: keyboard });
+  await ctx.replyMd(HOWTO_TEXT);
 });
 
 // /goals
@@ -238,7 +230,7 @@ commands.command("usage", async (ctx) => {
   const used = config.dailyLimit - usage.remaining;
 
   await ctx.replyMd(
-    `📊 *Usage today*\n\n` +
+    `*Usage today*\n\n` +
       `Tier: *${tier}*\n` +
       `Messages: ${used} / ${usage.limit}\n` +
       `Remaining: ${usage.remaining}`,
@@ -260,31 +252,31 @@ commands.command("profile", async (ctx) => {
   const config = getTierConfig(tier);
   const used = config.dailyLimit - usage.remaining;
 
-  let text = `👤 *${name}'s Profile*\n`;
+  let text = `*${name}'s Profile*\n`;
 
   text += `\n*Plan:* ${tier}`;
   text += `\n*Timezone:* ${timezone}`;
   text += `\n*Usage today:* ${used} / ${usage.limit} messages`;
 
   if (goals.length > 0) {
-    text += `\n\n🎯 *Goals (${goals.length})*`;
+    text += `\n\n*Goals (${goals.length})*`;
     for (const g of goals) {
       text += `\n• ${g.goal}`;
       if (g.target) text += ` → ${g.target}`;
     }
   } else {
-    text += `\n\n🎯 *Goals:* None set yet`;
+    text += `\n\n*Goals:* None set yet`;
   }
 
   if (prefs && (prefs.workStyle || prefs.tone || prefs.schedulePref)) {
-    text += `\n\n⚙️ *Preferences*`;
+    text += `\n\n*Preferences*`;
     if (prefs.workStyle) text += `\n• Work style: ${prefs.workStyle}`;
     if (prefs.tone) text += `\n• Tone: ${prefs.tone}`;
     if (prefs.schedulePref) text += `\n• Schedule: ${prefs.schedulePref}`;
   }
 
   if (entries.length > 0) {
-    text += `\n\n📝 *Recent activity*`;
+    text += `\n\n*Recent activity*`;
     for (const e of entries) {
       const date = new Date(e.created_at).toLocaleDateString("en-US", {
         month: "short",
@@ -293,6 +285,100 @@ commands.command("profile", async (ctx) => {
       text += `\n• ${date} — ${e.content}`;
     }
   }
+
+  await ctx.replyMd(text);
+});
+
+// /mydata — full transparency: everything Eliora knows about you
+commands.command("mydata", async (ctx) => {
+  const name = ctx.userName || "Unknown";
+
+  const [
+    { tier, timezone, createdAt },
+    goals,
+    prefs,
+    entries,
+    summary,
+    nudge,
+    activity,
+  ] = await Promise.all([
+    getUserMeta(ctx.userId),
+    getGoals(ctx.userId),
+    getPreferences(ctx.userId),
+    getRecentProgress(ctx.userId, 10),
+    getUserSummary(ctx.userId),
+    getNudgeSettings(ctx.userId),
+    getActivityStreak(ctx.userId, (await getUserMeta(ctx.userId)).timezone),
+  ]);
+
+  let text = `*Everything Eliora knows about ${name}*\n`;
+  text += `_This is all the data stored about you. Nothing hidden._\n`;
+
+  // Account
+  text += `\n*Account*`;
+  text += `\n• Plan: ${tier}`;
+  text += `\n• Timezone: ${timezone}`;
+  text += `\n• Joined: ${new Date(createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`;
+
+  // Goals
+  if (goals.length > 0) {
+    text += `\n\n*Goals (${goals.length})*`;
+    for (const g of goals) {
+      text += `\n• ${g.goal}`;
+      if (g.target) text += ` → ${g.target}`;
+      if (g.deadline) text += ` (by ${g.deadline})`;
+    }
+  } else {
+    text += `\n\n*Goals:* None set`;
+  }
+
+  // Preferences
+  if (prefs && (prefs.workStyle || prefs.tone || prefs.schedulePref)) {
+    text += `\n\n*Preferences*`;
+    if (prefs.workStyle) text += `\n• Work style: ${prefs.workStyle}`;
+    if (prefs.tone) text += `\n• Tone: ${prefs.tone}`;
+    if (prefs.schedulePref) text += `\n• Schedule: ${prefs.schedulePref}`;
+  } else {
+    text += `\n\n*Preferences:* None set`;
+  }
+
+  // Activity
+  text += `\n\n*Activity*`;
+  text += `\n• Current streak: ${activity.streak} days`;
+  text += `\n• Active days (last 7): ${activity.last7}`;
+
+  // Recent progress
+  if (entries.length > 0) {
+    text += `\n\n*Recent progress (last ${entries.length})*`;
+    for (const e of entries) {
+      const date = new Date(e.created_at).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+      text += `\n• ${date} — ${e.content}`;
+    }
+  } else {
+    text += `\n\n*Progress entries:* None yet`;
+  }
+
+  // Nudge settings
+  text += `\n\n*Nudge settings*`;
+  text += `\n• Enabled: ${nudge.enabled ? "Yes" : "No"}`;
+  text += `\n• Frequency: ${nudge.frequency.replace(/_/g, " ")}`;
+  text += `\n• Quiet hours: ${nudge.quietStart} – ${nudge.quietEnd}`;
+
+  // AI summary — the "brain"
+  if (summary && summary.summary) {
+    text += `\n\n*Eliora's internal notes about you*`;
+    text += `\n_This is the summary she uses to remember context between conversations:_\n`;
+    text += `\n${summary.summary}`;
+  } else {
+    text += `\n\n*Eliora's internal notes:* None yet (built after a few conversations)`;
+  }
+
+  text += `\n\n---`;
+  text += `\nTo delete everything: /forget`;
+  text += `\nSource code: github.com/AndrewNgKF/heyEliora\\_tele`;
 
   await ctx.replyMd(text);
 });

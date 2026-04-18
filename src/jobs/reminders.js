@@ -1,3 +1,23 @@
+/**
+ * Compute the next run time for recurring reminders.
+ * @param {{scheduleType: string, runAt: string}} reminder
+ * @returns {string|null}
+ */
+export function getNextRunAt(reminder) {
+  const current = new Date(reminder.runAt);
+  if (Number.isNaN(current.getTime())) return null;
+
+  switch (reminder.scheduleType) {
+    case "daily":
+      current.setUTCDate(current.getUTCDate() + 1);
+      return current.toISOString();
+    case "weekly":
+      current.setUTCDate(current.getUTCDate() + 7);
+      return current.toISOString();
+    default:
+      return null;
+  }
+}
 import {
   claimReminder,
   completeReminder,
@@ -31,10 +51,6 @@ function getNextRunAt(reminder) {
  * @param {{kind: string, source: string, content: string}} msg
  */
 function formatReminderMessage(msg) {
-  if (msg.kind === "nudge") {
-    return `👋 ${msg.content}`;
-  }
-
   return `⏰ *Reminder*\n\n${msg.content}`;
 }
 

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import express from "express";
 import { CRON_SECRET } from "../config/CONSTANTS.js";
-import { processDueReminders } from "../jobs/reminders.js";
+import { processDueMessages } from "../jobs/sender.js";
 import { processNudges } from "../jobs/nudges.js";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -51,7 +51,7 @@ export function createServer(bot) {
 
   app.post("/cron/deliver", requireCronAuth, async (_req, res) => {
     try {
-      const result = await processDueReminders(bot);
+      const result = await processDueMessages(bot);
       return res.json({ ok: true, ...result });
     } catch (error) {
       console.error("[eliora] cron/reminders error:", error);

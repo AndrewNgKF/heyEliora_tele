@@ -1,6 +1,11 @@
 import { db } from "./index.js";
 import { generateId } from "../utils/id.js";
-import { HARD_DAILY_CAP, NUDGE_THRESHOLDS, getTierConfig } from "../config/CONSTANTS.js";
+import {
+  HARD_DAILY_CAP,
+  FREE_TRIAL_DAYS,
+  FREE_TRIAL_DAILY_LIMIT,
+  getTierConfig,
+} from "../config/CONSTANTS.js";
 
 /**
  * Ensure a user exists, create if not
@@ -236,6 +241,64 @@ export async function getRecentProgress(telegramId, limit = 15) {
   }));
 }
 
+/**
+ * Get the user's current check-in streak (consecutive days with entries)
+ * and total entries in the last 7 days.
+ * @param {string} telegramId
+ * @param {string} [timezone="UTC"]
+ * @returns {Promise<{ streak: number, weekTotal: number }>}
+ */
+export async function getActivityStreak(telegramId, timezone = "UTC") {
+  // Get distinct dates with entries in the last 30 days
+  const result = await db.execute({
+    sql: `SELECT DISTINCT date(e.created_at) as entry_date
+          FROM goal_entries e
+          WHERE e.telegram_id = ?
+            AND e.created_at > datetime('now', '-30 days')
+          ORDER BY entry_date DESC`,
+    args: [telegramId],
+  });
+
+  const dates = result.rows.map((r) => r.entry_date);
+  if (dates.length === 0) return { streak: 0, weekTotal: 0 };
+
+  // Calculate streak: count consecutive days backward from today
+  let today;
+  try {
+    today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+  } catch {
+    today = new Date().toISOString().slice(0, 10);
+  }
+
+  let streak = 0;
+  const dateSet = new Set(dates);
+  const d = new Date(today + "T00:00:00Z");
+  // Allow today or yesterday as the start
+  if (!dateSet.has(today)) {
+    d.setUTCDate(d.getUTCDate() - 1);
+    if (!dateSet.has(d.toISOString().slice(0, 10)))
+      return { streak: 0, weekTotal: dates.length };
+  }
+  while (dateSet.has(d.toISOString().slice(0, 10))) {
+    streak++;
+    d.setUTCDate(d.getUTCDate() - 1);
+  }
+
+  // Count entries in last 7 days
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekDates = dates.filter(
+    (dt) => dt >= weekAgo.toISOString().slice(0, 10),
+  );
+
+  return { streak, weekTotal: weekDates.length };
+}
+
 // --- Usage ---
 
 /**
@@ -265,13 +328,15 @@ function getTodayForTimezone(timezone) {
  */
 export async function getUserMeta(telegramId) {
   const result = await db.execute({
-    sql: "SELECT tier, timezone FROM users WHERE telegram_id = ?",
+    sql: "SELECT tier, timezone, created_at FROM users WHERE telegram_id = ?",
     args: [telegramId],
   });
-  if (result.rows.length === 0) return { tier: "free", timezone: "UTC" };
+  if (result.rows.length === 0)
+    return { tier: "free", timezone: "UTC", createdAt: null };
   return {
     tier: result.rows[0].tier || "free",
     timezone: result.rows[0].timezone || "UTC",
+    createdAt: result.rows[0].created_at || null,
   };
 }
 
@@ -307,9 +372,16 @@ export async function setTimezone(telegramId, timezone) {
  * @returns {Promise<{ allowed: boolean, remaining: number, limit: number }>}
  */
 export async function checkUsage(telegramId) {
-  const { tier, timezone } = await getUserMeta(telegramId);
+  const { tier, timezone, createdAt } = await getUserMeta(telegramId);
   const config = getTierConfig(tier);
-  const limit = Math.min(config.dailyLimit, HARD_DAILY_CAP);
+
+  let effectiveLimit = config.dailyLimit;
+  if (tier === "free" && createdAt) {
+    const ageMs = Date.now() - new Date(createdAt + "Z").getTime();
+    const ageDays = ageMs / (1000 * 60 * 60 * 24);
+    if (ageDays <= FREE_TRIAL_DAYS) effectiveLimit = FREE_TRIAL_DAILY_LIMIT;
+  }
+  const limit = Math.min(effectiveLimit, HARD_DAILY_CAP);
   const today = getTodayForTimezone(timezone);
 
   const result = await db.execute({
@@ -619,21 +691,24 @@ export async function updateNudgeSettings(telegramId, settings) {
  * @param {string} telegramId
  */
 export async function markNudgeSent(telegramId) {
-  // Get user's frequency to compute next_nudge_at
-  const settings = await getNudgeSettings(telegramId);
-  const days = NUDGE_THRESHOLDS[settings.frequency] || 3;
-  const nextNudge = new Date(
-    Date.now() + days * 24 * 60 * 60 * 1000,
-  ).toISOString();
-
   await db.execute({
     sql: `INSERT INTO nudge_settings (telegram_id, last_nudge_at, next_nudge_at, updated_at)
-          VALUES (?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP)
+          VALUES (
+            ?,
+            CURRENT_TIMESTAMP,
+            datetime('now', '+3 days'),
+            CURRENT_TIMESTAMP
+          )
           ON CONFLICT(telegram_id) DO UPDATE SET
             last_nudge_at = CURRENT_TIMESTAMP,
-            next_nudge_at = ?,
+            next_nudge_at = datetime('now', '+' || CASE frequency
+              WHEN 'daily' THEN '1'
+              WHEN 'every_3_days' THEN '3'
+              WHEN 'weekly' THEN '7'
+              ELSE '3'
+            END || ' days'),
             updated_at = CURRENT_TIMESTAMP`,
-    args: [telegramId, nextNudge, nextNudge],
+    args: [telegramId],
   });
 }
 
@@ -657,6 +732,12 @@ export async function getNudgeCandidates() {
             AND (
               ns.next_nudge_at IS NULL
               OR ns.next_nudge_at <= datetime('now')
+            )
+            AND EXISTS (
+              SELECT 1 FROM messages m
+              WHERE m.telegram_id = u.telegram_id
+                AND m.role = 'user'
+                AND m.created_at > datetime('now', '-30 days')
             )`,
   });
 
@@ -691,20 +772,20 @@ export async function hasPendingNudge(telegramId) {
  * @param {string} telegramId
  */
 export async function recalculateNextNudgeAt(telegramId) {
-  const settings = await getNudgeSettings(telegramId);
-  if (!settings.enabled) {
-    // Disabled — clear next_nudge_at
-    await db.execute({
-      sql: "UPDATE nudge_settings SET next_nudge_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = ?",
-      args: [telegramId],
-    });
-    return;
-  }
-  const days = NUDGE_THRESHOLDS[settings.frequency] || 3;
-  const next = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
   await db.execute({
-    sql: "UPDATE nudge_settings SET next_nudge_at = ?, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = ?",
-    args: [next, telegramId],
+    sql: `UPDATE nudge_settings SET
+            next_nudge_at = CASE WHEN enabled = 1
+              THEN datetime('now', '+' || CASE frequency
+                WHEN 'daily' THEN '1'
+                WHEN 'every_3_days' THEN '3'
+                WHEN 'weekly' THEN '7'
+                ELSE '3'
+              END || ' days')
+              ELSE NULL
+            END,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE telegram_id = ?`,
+    args: [telegramId],
   });
 }
 
@@ -714,20 +795,17 @@ export async function recalculateNextNudgeAt(telegramId) {
  * @param {string} telegramId
  */
 export async function resetNextNudgeAt(telegramId) {
-  // Get frequency without creating a row
-  const result = await db.execute({
-    sql: "SELECT enabled, frequency FROM nudge_settings WHERE telegram_id = ?",
-    args: [telegramId],
-  });
-  if (result.rows.length === 0) return; // No settings row — user hasn't been nudged yet
-  const row = result.rows[0];
-  if (!row.enabled) return;
-
-  const days = NUDGE_THRESHOLDS[row.frequency] || 3;
-  const next = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
   await db.execute({
-    sql: "UPDATE nudge_settings SET next_nudge_at = ?, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = ?",
-    args: [next, telegramId],
+    sql: `UPDATE nudge_settings SET
+            next_nudge_at = datetime('now', '+' || CASE frequency
+              WHEN 'daily' THEN '1'
+              WHEN 'every_3_days' THEN '3'
+              WHEN 'weekly' THEN '7'
+              ELSE '3'
+            END || ' days'),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE telegram_id = ? AND enabled = 1`,
+    args: [telegramId],
   });
 }
 

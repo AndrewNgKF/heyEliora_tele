@@ -2,109 +2,119 @@
 
 ## What is heyEliora?
 
-A personal AI assistant that lives in Telegram — she learns how you work, handles your busywork, and keeps you accountable to your goals. Open source, self-hosted core with an optional hosted Pro tier.
+A personal agentic AI that lives in Telegram. She remembers your goals, tracks your streaks, draws from world-class experts, and keeps you accountable. Open source, self-hostable, with an optional hosted Pro tier.
 
 ## The Value Proposition
 
-**"Stop managing your tools. Let Eliora manage them for you."**
+**"Every AI knows the world. Eliora knows you."**
 
-Every productivity app asks you to learn _it_. Eliora flips that — she learns _you_. Your writing style, your scheduling preferences, your priorities. She reads your documents, drafts your emails, and organizes your calendar — all from a Telegram chat you already use every day.
+Every AI assistant resets when you close the tab. Eliora doesn't. She remembers your goals, notices your patterns, tracks your consistency, and calls you out when you're avoiding the hard thing. She's not a chatbot — she's an AI that acts.
 
 ## Why Would Someone Use heyEliora?
 
-1. **She does the work, not just answers questions.** Most AI tools give you text. Eliora takes action — schedules meetings, drafts replies, summarizes documents — then asks before sending. You stay in control without doing the legwork.
+1. **She reaches out to you.** Most tools wait for you to open them. Eliora checks in based on your goals and activity. She notices when you go quiet and asks what happened. No other AI does this.
 
-2. **She knows you, and that compounds.** After two weeks, she knows you prefer morning meetings and hate formal email tone. After a month, she drafts things you'd actually send. Generic AI can't do this. Switching away means starting over.
+2. **She knows you, and that compounds.** Day 1, she's helpful. Day 30, she knows your work style, your avoidance patterns, your timezone, and which advice actually lands. Switching away means starting over.
 
-3. **No new app to learn.** She lives in Telegram. No dashboard, no onboarding flow, no browser tab. You text her like you'd text a friend.
+3. **Expert advice applied to your situation.** Stuck on a plateau? She'll reference Attia's framework using your actual data. Procrastinating? She'll name the pattern using Pressfield's concept of Resistance. Not generic tips — specific insights applied to your goals and entries.
 
-4. **She keeps you accountable.** Tell Eliora your goals and ambitions — she checks whether the tasks you're doing actually align with them. She's not just a task runner, she's the friend who asks "is this really what you should be spending time on right now?" No other AI tool does this because none of them know what you're working _toward_.
+4. **She sees patterns you don't.** She tracks streaks, gaps, avoidance patterns, and when you're about to hit a target. She quotes your own words back to you when you need to hear them.
 
-5. **You can see exactly how she works.** Open source core means full transparency. You know what she does with your data because you can read the code. In a world of AI trust issues, that matters.
+5. **No new app.** She lives in Telegram. No dashboard, no onboarding flow, no browser tab. You text her like you'd text a friend.
+
+6. **Open source.** Read every line of code. Self-host it. Delete everything with one command. Transparency isn't optional.
 
 ## Why Not Just Use ChatGPT / Claude / Notion AI?
 
-Those tools know the world. Eliora knows _you_. They reset every conversation. Eliora remembers. They live in a browser tab. Eliora lives where you already are. They help you do tasks faster — Eliora asks whether you should be doing that task at all. The difference is personal context _and purpose_ that builds over time — that's not a feature, it's a moat.
+ChatGPT forgets you after every conversation. Eliora remembers your goals, tracks your streaks, notices your avoidance patterns, and reaches out to you proactively when you go quiet. She draws from domain experts — Attia for health, Naval for startups, Pressfield for creative work, Yogananda for inner practice — and applies their frameworks to your specific situation. She's not an everything-machine. She's your personal agentic AI.
 
-## Launch Audience (Pick ONE to start)
+## Target Audience
 
-**Primary: Solo founders and freelancers who already use Telegram.**
+**Primary: Anyone with a goal and the discipline to talk about it.**
 
-Why them first:
+The landing page demonstrates value for:
 
-- They feel the pain of juggling tools the most (no assistant, no ops team)
-- They're already in Telegram for crypto/tech/indie communities
-- They make their own purchasing decisions (no procurement hoops)
-- They talk to each other — high word-of-mouth potential
+- Founders scaling a business (hiring, shipping, prioritization)
+- Students preparing for exams (study discipline, subject balance)
+- People on a weight loss journey (consistency, nutrition tracking)
+- Meditators deepening their practice (streak tracking, progressive goals)
 
-Expand to consultants and creators _after_ product-market fit with this group.
+The common thread: people who are already trying, but need something that remembers what they said and holds them to it.
+
+**Distribution advantage:** Telegram-native means zero friction. No app install, no account creation, no form. 30 seconds to first conversation.
 
 ## First 5 Minutes — The "Aha" Moment
 
-New users decide to stay or leave in the first session. The onboarding must deliver a visible win immediately:
+New users decide to stay or leave in the first session. The onboarding delivers one clear question:
 
-1. User connects Eliora → she asks 3 questions about work style, priorities, and current goals
-2. User forwards one email or document → Eliora summarizes it, suggests a next action, and flags whether it aligns with their stated goals
-3. User sees: "She actually understood that — and she's keeping me honest." → trust begins
+1. User taps Start → Eliora says: "Hey [name]. I'm Eliora — I remember what you're working on and I won't let you off the hook. What's the one thing you're trying to get done this month?"
+2. User shares a goal → Eliora refines it, sets a target, and explains she'll check in
+3. User realizes: "She actually understood that — and she's going to follow up." → trust begins
 
 **The goal is not to show every feature. It's to make the user think "I need this tomorrow too."**
+
+**Trial design:** Free tier gets 15 messages/day for the first 3 days (enough to set goals, experience a check-in, get expert advice, see a streak), then drops to 5/day. The paywall hits after the magic, not before.
 
 ## Go-To-Market Strategy
 
 **Phase 1 — Seed (Month 1–2)**
 
-- Launch on GitHub with clean README and demo video
-- Post in Telegram communities (indie hackers, productivity, AI tools)
-- Share build-in-public journey on X/Twitter — behind the scenes, not feature announcements
+- Launch on GitHub with clean README and demo
+- Post in Telegram communities (indie hackers, productivity, fitness, meditation)
+- Share build-in-public journey on X/Twitter — real conversations, not feature lists
 - Get 50 beta users, prioritize feedback loops
 
 **Phase 2 — Grow (Month 3–6)**
 
-- Collect 10 concrete testimonials ("Eliora saves me 45 min/day on email")
-- Write 2-3 blog posts showing real workflows, not product pitches
+- Collect testimonials around specific patterns: "She noticed I was avoiding X before I did"
+- Write 2-3 posts showing real conversations (with permission), not product pitches
 - Submit to Product Hunt, HackerNews, relevant subreddits
-- Community Discord/Telegram group for users to share tips and workflows
+- Community Telegram group for users to share how they use Eliora
 
 **Phase 3 — Monetize (Month 4+)**
 
-- Introduce paid tier once free users are retained past 2 weeks
+- Pro tier converts users who hit the 5 msg/day wall after experiencing the product
 - Conversion target: 5–10% of active free users
 
 ## Pricing Model
 
-|                 | Free (open source, self-hosted) | Pro ($19/month)                |
-| --------------- | ------------------------------- | ------------------------------ |
-| Core assistant  | ✅                              | ✅                             |
-| Actions per day | 5                               | Unlimited                      |
-| Integrations    | Telegram + 1 tool               | All (email, calendar, docs)    |
-| Memory          | 7-day context window            | Full long-term personalization |
-| Hosting         | Self-hosted                     | Hosted — zero setup            |
-| Support         | Community                       | Priority                       |
+|                  | Free                      | Pro ($9/month)                       |
+| ---------------- | ------------------------- | ------------------------------------ |
+| Messages/day     | 15 (first 3 days), then 5 | 100                                  |
+| Goal tracking    | ✅                        | ✅                                   |
+| Proactive nudges | ✅                        | Priority nudges + check-ins          |
+| Expert advice    | ✅                        | ✅                                   |
+| Streak tracking  | ✅                        | Full pattern recognition over time   |
+| Conversations    | Standard                  | Deeper conversations, longer replies |
+| Future features  | —                         | Calendar, email integrations         |
+| Hosting          | Self-host for unlimited   | Hosted — zero setup                  |
 
-**Why $19/month:** Positioned below Notion AI ($20) and ChatGPT Plus ($20), but the value is more _personal_. For a freelancer billing $75/hr, saving 1 hour/week = $300/month. The ROI pitch is 15x return.
+**Why $9/month:** Low enough to be an impulse decision. For anyone serious about their goals, $9 is nothing. The value isn't "more messages" — it's "she gets smarter about you faster because you talk to her more."
 
-**Why 5 free actions (not 10):** 10/day is "good enough" for most people — they'd never convert. 5 is enough to build the habit but not enough to rely on. The limit should hit right when they think "wait, I actually need her."
+**Why 5 messages/day after trial:** 5 is enough to log progress but not enough for a real conversation. The squeeze is felt precisely when the user wants to go deeper — that's the conversion moment.
 
 ## Risks and How to Handle Them
 
-| Risk                                       | Mitigation                                                                                                                                                                             |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Personalization feels generic in week 1    | Pre-seed context: ask 5 setup questions + analyze forwarded docs on day 1. Show a "what I've learned about you" summary by day 3.                                                      |
-| "Why not ChatGPT?" objection               | Never compete on general intelligence. Compete on personal context. Marketing should say "ChatGPT knows everything. Eliora knows _you_."                                               |
-| Trust/data concerns                        | Open source is the foundation. Add a clear /privacy command that shows exactly what Eliora stores. Let users delete all data with one command.                                         |
-| Telegram limits total addressable market   | Accept this. Telegram-native is a feature for the niche, not a bug. If demand proves out, WhatsApp/Discord can come later.                                                             |
-| Users go inactive after initial excitement | Eliora sends a gentle weekly recap: "Here's what I helped with this week." If inactive 3+ days, a low-pressure nudge: "Hey, got anything I can help with today?" — not spammy, useful. |
+| Risk                                       | Mitigation                                                                                                                                     |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| First interaction feels generic            | /start asks a direct question. No tutorial. No feature tour. The AI earns trust by listening, not explaining.                                  |
+| "Why not ChatGPT?" objection               | Never compete on general intelligence. Compete on continuity: she remembers, she follows up, she reaches out.                                  |
+| Trust/data concerns                        | Open source core. `/forget` wipes everything. Self-host option. Transparency is the product.                                                   |
+| Telegram limits total addressable market   | Accept it. Telegram-native is a feature for the niche, not a bug. WhatsApp/Discord can come later if demand proves out.                        |
+| Users go inactive after initial excitement | Nudge system detects inactivity and reaches out. Static messages for returning users: "Still here when you're ready." Not spammy — respectful. |
+| Free tier too generous / too restrictive   | 3-day trial at 15 msg/day, then 5. Tunable via env vars without code changes.                                                                  |
 
 ## Retention Mechanics
 
-- **Weekly recap message:** "This week I handled 12 tasks, saved you ~45 minutes. Here's what's coming up." Reinforces value even when it's invisible.
-- **Goal alignment check-ins:** "You said Q2 is about launching the MVP. This week, 3 of your 8 tasks were aligned with that. Want to talk about reprioritizing?" This is the killer retention loop — she makes you _feel seen_.
-- **Compounding personalization:** Each week she gets noticeably better. Make that visible: "I noticed you always reschedule Thursday meetings — want me to stop booking them?"
-- **Streak mechanic (light touch):** "We've worked together for 30 days. Here's your productivity snapshot." Not gamification — just proof of value.
+- **Proactive nudges:** She checks in based on goal cadence and activity gaps. "You haven't mentioned X in a while." This is the #1 retention lever — she reaches out before you forget.
+- **Streak tracking:** Consecutive days of progress entries are surfaced naturally. "That's 12 days running." Breaking a streak feels like a loss — that's the dopamine loop.
+- **Cross-session memory:** She quotes your own words back to you. "Two weeks ago you said the mornings you sit, the whole day feels different." This creates an emotional bond no generic AI can match.
+- **Expert-informed advice:** Not random — applied to your actual data and patterns. Makes each conversation feel uniquely valuable.
+- **Compounding personalization:** Each week she gets noticeably better. The cost of switching to another tool grows over time.
 
 ## One-Line Pitch (for different contexts)
 
-- **GitHub README:** "Your personal AI assistant in Telegram. Open source. Learns how you work."
-- **Twitter/X:** "I built an AI assistant that lives in Telegram, knows my goals, and calls me out when I'm wasting time on the wrong things."
-- **To a friend:** "It's like having a PA who also knows what you're trying to achieve and keeps you honest."
-- **To an investor:** "Open-source personal AI assistant with compounding personalization and a freemium Telegram-native distribution model."
+- **GitHub README:** "Your personal agentic AI in Telegram. She remembers your goals, tracks your streaks, and keeps you accountable. Open source."
+- **Twitter/X:** "I built an AI that lives in Telegram, remembers my goals, quotes my own words back to me when I'm slacking, and draws from Pressfield + Attia + Naval to give advice that's actually about MY situation."
+- **To a friend:** "It's like having a coach who knows everything you've told them for months and actually follows up."
+- **To an investor:** "Open-source personal agentic AI with compounding personalization, proactive engagement, and a freemium Telegram-native distribution model. $9/mo Pro tier."

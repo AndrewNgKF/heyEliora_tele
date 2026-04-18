@@ -310,7 +310,7 @@ nav {
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.12),
     0 4px 16px rgba(0, 0, 0, 0.06);
-  max-width: 380px;
+  max-width: 420px;
 }
 
 .tg-status-bar {
@@ -365,11 +365,10 @@ nav {
 
 .tg-messages {
   background: #c8d9eb;
-  padding: 16px 12px;
+  padding: 16px 12px 48px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-height: 280px;
 }
 
 .tg-bubble {
@@ -906,7 +905,7 @@ footer a:hover {
     justify-content: center;
   }
   .tg-phone {
-    max-width: 340px;
+    max-width: 380px;
     margin: 0 auto;
   }
   .letter {
@@ -925,4 +924,98 @@ footer a:hover {
   .step {
     padding-left: 52px;
   }
+}
+
+/* ── Hero carousel ─────────────────────────────────── */
+
+.tg-messages-carousel {
+  display: grid;
+  background: #c8d9eb;
+  position: relative;
+}
+
+.tg-messages-carousel::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(transparent, #c8d9eb);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tg-scene {
+  grid-area: 1 / 1;
+  max-height: 520px;
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  scrollbar-width: none;
+}
+
+.tg-scene::-webkit-scrollbar {
+  display: none;
+}
+
+.tg-scene.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scene-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.scene-arrow {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.scene-arrow:hover {
+  color: var(--accent);
+}
+
+.scene-label-text {
+  font-family: var(--font-hand);
+  font-size: 1.05rem;
+  color: var(--text-soft);
+  opacity: 0.7;
+  min-width: 180px;
+  text-align: center;
+  transition: opacity 0.3s;
+}
+
+.scene-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.scene-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s;
+}
+
+.scene-dot.active {
+  background: var(--accent);
 }

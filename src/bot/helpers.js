@@ -15,7 +15,7 @@ export function formatGoalList(goals) {
         const parts = [];
         if (g.baseline) parts.push(`from: ${g.baseline}`);
         if (g.target) parts.push(`target: ${g.target}`);
-        line += `\n   📊 ${parts.join(" → ")}`;
+        line += `\n   ${parts.join(" → ")}`;
       }
       return line;
     })

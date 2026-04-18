@@ -4,6 +4,7 @@ import {
   hasPendingNudge,
   getGoals,
   getRecentProgress,
+  getActivityStreak,
   getUserSummary,
   createScheduledMessage,
   markNudgeSent,
@@ -42,14 +43,20 @@ function isQuietHours(timezone, quietStart, quietEnd) {
 }
 
 /**
- * Ask Claude to generate a contextual nudge message for this user.
- * @param {Array<{id: string, goal: string, baseline?: string, target?: string}>} goals
- * @param {Array<{goal: string, content: string, created_at: string}>} entries
- * @param {string|null} summary - user_summary for deeper context
+ * Ask Claude to generate a contextual nudge message.
+ * @param {Array} goals
+ * @param {Array} entries
+ * @param {{summary: string}|null} summaryRow
  * @param {boolean} isFirstNudge
  * @returns {Promise<string>}
  */
-async function generateNudgeMessage(goals, entries, summary, isFirstNudge) {
+async function generateNudgeContent(
+  goals,
+  entries,
+  summaryRow,
+  isFirstNudge,
+  activity,
+) {
   const goalContext =
     goals.length > 0
       ? goals
@@ -68,8 +75,15 @@ async function generateNudgeMessage(goals, entries, summary, isFirstNudge) {
           .join("\n")
       : "No recent activity.";
 
-  const summaryContext = summary
-    ? `\n\nWhat you know about this user:\n${summary}`
+  const streakContext =
+    activity.streak > 1
+      ? `\n\nStreak: ${activity.streak} consecutive days with entries. ${activity.weekTotal} of last 7 days active.`
+      : activity.weekTotal > 0
+        ? `\n\nActivity: entries on ${activity.weekTotal} of the last 7 days. No active streak.`
+        : "";
+
+  const summaryContext = summaryRow
+    ? `\n\nWhat you know about this user:\n${summaryRow.summary}`
     : "";
 
   const firstNudgeNote = isFirstNudge
@@ -79,11 +93,25 @@ async function generateNudgeMessage(goals, entries, summary, isFirstNudge) {
   const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 256,
-    system: `You are Eliora, a warm and direct personal AI assistant. You're sending a proactive check-in message — like a friend who remembers what the user is working on and understands who they are. Keep it SHORT (2-3 sentences max). Be specific — reference their actual goals, recent activity, and what you know about them. Don't be generic or corporate. Use Telegram formatting (*bold*, _italic_). No greetings like "Hi!" — just get into it.${summaryContext}${firstNudgeNote}`,
+    system: `You are Eliora, a warm and direct personal AI assistant. Write a short proactive check-in message to send to the user — like a friend who remembers what they're working on.
+
+Rules:
+- Your output is sent DIRECTLY to the user as-is. Do NOT include meta-commentary, explanations, markdown dividers, or notes about what you're doing.
+- Keep it to 2-3 sentences max.
+- Be specific — reference their actual goals and recent activity.
+- If they have no goals yet, warmly encourage them to share what they're working on so you can actually help.
+- If their recent activity shows consecutive days of entries, mention the streak briefly: "3 days running — you're building momentum."
+- If there's a big gap since their last entry, name it: "Haven't seen an update on X in a while."
+- If recent entries suggest they've hit or exceeded a goal target, celebrate it.
+- When relevant, weave in one sharp insight from a domain expert. Name them and the concept. "Attia's framework says this — if you're not measuring protein, you're guessing." Keep it brief and applied to their situation, not generic.
+- Don't be generic or corporate. Talk like a friend who reads a lot.
+- Use Telegram formatting (*bold*, _italic_).
+- No greetings like "Hi!" — just get into it.
+- Always address the user as "you", never "they" or "the user".${summaryContext}${firstNudgeNote}`,
     messages: [
       {
         role: "user",
-        content: `Generate a nudge message for this user.\n\nGoals:\n${goalContext}\n\nRecent activity:\n${entryContext}`,
+        content: `Write a check-in message for this user.\n\nGoals:\n${goalContext}\n\nRecent activity:\n${entryContext}${streakContext}`,
       },
     ],
   });
@@ -95,9 +123,8 @@ async function generateNudgeMessage(goals, entries, summary, isFirstNudge) {
 }
 
 /**
- * Evaluate due users and generate nudges.
- * Only processes users whose next_nudge_at has passed (pre-filtered by SQL).
- * Inserts nudge messages into scheduled_messages for delivery by /cron/deliver.
+ * Evaluate due users, generate nudge content, and queue for delivery.
+ * Content is inserted into scheduled_messages — sender.js handles delivery.
  * @returns {Promise<{ evaluated: number, nudged: number, skipped: number, errors: number }>}
  */
 export async function processNudges() {
@@ -109,35 +136,41 @@ export async function processNudges() {
 
   for (const user of candidates) {
     try {
-      // Skip if quiet hours (can't pre-filter — depends on user's local time)
       if (isQuietHours(user.timezone, user.quietStart, user.quietEnd)) {
         skipped++;
         continue;
       }
 
-      // Skip if there's already a pending nudge in the queue
       const pending = await hasPendingNudge(user.telegramId);
       if (pending) {
         skipped++;
         continue;
       }
 
-      // Generate the nudge with full context
       const isFirstNudge = !user.lastNudgeAt;
-      const [goals, entries, summaryRow] = await Promise.all([
+      const [goals, entries, summaryRow, activity] = await Promise.all([
         getGoals(user.telegramId),
         getRecentProgress(user.telegramId, 5),
         getUserSummary(user.telegramId),
+        getActivityStreak(user.telegramId, user.timezone),
       ]);
 
-      const message = await generateNudgeMessage(
-        goals,
-        entries,
-        summaryRow?.summary || null,
-        isFirstNudge,
-      );
+      // No data at all — static message, skip the LLM call
+      let message;
+      if (goals.length === 0 && entries.length === 0 && !summaryRow) {
+        message = isFirstNudge
+          ? "So — what's the one thing you're trying to get done this month? Give me something to work with and I'll actually keep you on track.\n\n_(I'll check in like this from time to time — tell me if you want more or less of it.)_"
+          : "Still here when you're ready. What are you working on right now? Even one goal gives me something to actually help with.";
+      } else {
+        message = await generateNudgeContent(
+          goals,
+          entries,
+          summaryRow,
+          isFirstNudge,
+          activity,
+        );
+      }
 
-      // Insert into scheduled_messages for immediate delivery
       await createScheduledMessage(user.telegramId, {
         content: message,
         runAt: new Date().toISOString(),

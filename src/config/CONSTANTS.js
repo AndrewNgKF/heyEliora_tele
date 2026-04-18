@@ -3,6 +3,10 @@
 /** Absolute hard cap per user per day, regardless of tier */
 export const HARD_DAILY_CAP = parseInt(process.env.HARD_DAILY_CAP || "200", 10);
 
+/** Free-tier trial: generous limit for the first N days */
+export const FREE_TRIAL_DAYS = 3;
+export const FREE_TRIAL_DAILY_LIMIT = 15;
+
 /** @type {Record<string, { dailyLimit: number, model: string, maxTokens: number }>} */
 export const TIERS = {
   free: {
@@ -17,7 +21,7 @@ export const TIERS = {
   },
   pro: {
     dailyLimit: parseInt(process.env.PRO_DAILY_LIMIT || "100", 10),
-    model: process.env.PRO_MODEL || "claude-sonnet-4-20250514",
+    model: process.env.PRO_MODEL || "claude-haiku-4-5-20251001",
     maxTokens: 1024,
   },
 };
@@ -58,14 +62,14 @@ export const TIMEZONE_OPTIONS = [
 
 /** Shared howto / capabilities text */
 export const HOWTO_TEXT =
-  `*Here's what I can do:*\n\n` +
-  `🎯 *Goals* — Tell me what you're working toward. I'll ask questions to make it specific, then track it.\n` +
-  `📝 *Progress* — Just tell me what you did (or didn't do). I'll log it against your goals automatically.\n` +
-  `⏰ *Reminders* — Ask for reminders, use /remind or conversationally.\n` +
-  `📊 *Check-ins* — /whatsup gives you an honest accountability report.\n` +
-  `🗣 *Preferences* — Tell me how you like to work — I'll remember.\n` +
-  `🧹 *Fresh start* — /forget clears our conversation history.\n\n` +
-  `No commands needed — just talk to me naturally.`;
+  `*Just talk to me like you would a friend.*\n\n` +
+  `Tell me what you're working on — I'll help you turn it into a clear goal and track your progress automatically.\n\n` +
+  `Ask me to remind you about things, tell me what you got done today, or ask for an honest check-in on how you're doing.\n\n` +
+  `I pick up on your preferences, timezone, and habits as we talk — no setup needed.\n\n` +
+  `/goals — see what you're tracking\n` +
+  `/whatsup — accountability check-in\n` +
+  `/reminders — your active reminders\n` +
+  `/forget — clear our conversation`;
 
 /** Shared secret for cron endpoint authentication */
 export const CRON_SECRET = process.env.CRON_SECRET || "";
@@ -84,16 +88,10 @@ export const SUMMARY_INTERVAL = 10;
 
 /** Telegram command menu entries */
 export const COMMANDS = [
-  { command: "start", description: "Welcome + quick start" },
-  { command: "profile", description: "Your profile at a glance" },
+  { command: "start", description: "Start here" },
   { command: "goals", description: "View your goals" },
-  { command: "progress", description: "Recent progress entries" },
-  { command: "remind", description: "Set a reminder via chat" },
-  { command: "reminders", description: "View active reminders" },
   { command: "whatsup", description: "Accountability check-in" },
-  { command: "usage", description: "Today's usage + limits" },
-  { command: "timezone", description: "Set your timezone" },
-  { command: "preferences", description: "View your preferences" },
-  { command: "howto", description: "What Eliora can do" },
+  { command: "reminders", description: "View active reminders" },
+  { command: "mydata", description: "See everything Eliora knows about you" },
   { command: "forget", description: "Clear conversation history" },
 ];

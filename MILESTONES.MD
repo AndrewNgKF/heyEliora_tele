@@ -66,11 +66,17 @@ Eliora can remind you and run recurring check-ins.
 - [x] Recurring reminders (daily, weekly)
 - [x] Timezone handling — users can set their timezone in preferences, reminders and nudges respect that
 - [x] `/timezone` command — view/set timezone with inline keyboard
-- [ ] Nudge system — if inactive for N days, Eliora sends a check-in ("Hey, haven't heard from you in a while. Everything okay?")
-- [ ] Nudge saved in background, triggered by inactivity and not counting against daily limits
+- [x] Nudge system — contextual check-ins based on inactivity, frequency, and quiet hours
+- [x] Nudge saved in background (scheduled_messages queue), delivered by sender.js cron
+- [x] Re-engagement nudge (static message for empty users, LLM-generated for active users)
+- [x] Ghost user filter (30-day activity check prevents wasting LLM on abandoned accounts)
+- [x] Activity streak tracking (consecutive days with entries, surfaced in prompts and nudges)
+- [x] Goal completion detection (system prompt instructs Eliora to celebrate hitting targets)
+- [x] Conversational /start (direct question, not feature list)
+- [x] Simplified command menu (12 → 5 commands)
+- [x] Rolling user summaries (background summarization of conversation history)
 - [ ] Weekly recap message (tasks handled, goals alignment %)
 - [ ] Goal check-in (weekly — "3 of 8 tasks aligned with your Q2 goal")
-- [ ] Re-engagement nudge (if inactive 3+ days)
 
 **Done when:** Eliora sends you a reminder you set, and delivers a weekly recap without being asked.
 
@@ -87,11 +93,11 @@ Eliora can remind you and run recurring check-ins.
 - [x] RATIONALE.MD — document design decisions and trade-offs
 - [x] Switch IDs from auto-increment integers to short alphanumeric (8 chars) — better UX in Telegram, no privacy leak
 - [x] Track usage metrics (number of messages, actions taken) for future analytics and potential paid tier limits
+- [x] Summarize conversations in the database to save space (rolling user summaries, refreshed after threshold)
+- [x] Personal Profile — `/profile` command shows goals, preferences, recent activity at a glance
 - [ ] Make it appealing, Eliora logo, buttons for user interaction, etc.
 - [ ] Landing page with clear value prop and setup instructions (can start as GitHub README)
 - [ ] Consider easter eggs or fun personality quirks to make Eliora more engaging and less robotic
-- [ ] Summarize conversations in the database to save space (e.g. keep last 5 messages, then summarize older ones into a single entry)
-- [ ] Personal Profile, What Eliora knows about you at a glance (goals, preferences, recent activity) — maybe via `/profile` command or in the system prompt for quick reference
 
 ---
 
