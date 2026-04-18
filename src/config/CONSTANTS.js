@@ -82,7 +82,7 @@ export const NUDGE_THRESHOLDS = {
 };
 
 /** Number of user messages between summary refreshes */
-export const SUMMARY_INTERVAL = 10;
+export const SUMMARY_INTERVAL = 5;
 
 /** Telegram command menu entries */
 export const COMMANDS = [
