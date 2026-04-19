@@ -1,25 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "builds": [{ "src": "src/index.js", "use": "@vercel/node" }],
-  "firewall": {
-    "rules": [
-      {
-        "name": "Allow social media crawlers",
-        "description": "Bypass bot protection for OG scrapers",
-        "conditionGroup": [
-          {
-            "conditions": [
-              {
-                "op": "re",
-                "type": "user_agent",
-                "value": "facebookexternalhit|Twitterbot|TelegramBot|LinkedInBot|WhatsApp"
-              }
-            ]
-          }
-        ],
-        "action": { "type": "allow" }
-      }
-    ]
-  },
   "routes": [{ "src": "/(.*)", "dest": "src/index.js" }]
 }
