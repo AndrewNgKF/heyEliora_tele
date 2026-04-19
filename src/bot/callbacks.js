@@ -83,7 +83,11 @@ callbacks.on("callback_query:data", async (ctx) => {
         break;
       }
       try {
-        const { text: reply, inputTokens, outputTokens } = await performCheckIn(ctx.userId, goals);
+        const {
+          text: reply,
+          inputTokens,
+          outputTokens,
+        } = await performCheckIn(ctx.userId, goals);
         await incrementUsage(ctx.userId, inputTokens, outputTokens);
         await ctx.replyMd(reply);
       } catch (err) {
