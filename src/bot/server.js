@@ -46,10 +46,10 @@ export function createServer(bot) {
   const telegramWebhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET || "";
 
   app.use(express.json());
-  app.use(express.static(WEB_DIR));
+  app.use(express.static(WEB_DIR, { acceptRanges: false }));
 
   app.get("/", (_req, res) => {
-    res.sendFile(path.join(WEB_DIR, "index.html"));
+    res.sendFile(path.join(WEB_DIR, "index.html"), { acceptRanges: false });
   });
 
   app.get("/health", (_req, res) => {
