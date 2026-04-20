@@ -8,7 +8,8 @@
     "dev": "bun --watch src/index.js",
     "start": "bun src/index.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
