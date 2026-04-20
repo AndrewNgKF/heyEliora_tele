@@ -223,6 +223,7 @@ export const TOOLS = [
         },
       },
     },
+    cache_control: { type: "ephemeral" },
   },
 ];
 

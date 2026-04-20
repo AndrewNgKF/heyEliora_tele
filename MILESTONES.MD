@@ -88,6 +88,8 @@ Eliora can remind you and run recurring check-ins.
 
 ## Milestone 5: Web Interface + Payment + User Management and Profile
 
+- [x] Prompt caching — 3-layer cache strategy (tools, static system prompt, conversation history) using Anthropic's `cache_control`. Explicit breakpoints on tools + base prompt, automatic caching on messages. Timestamp moved from system prompt to user message prefix to avoid busting per-user cache. Tracks `cacheReadTokens` and `cacheCreationTokens` in response.
+
 <!-- TODO: Fill it in from payment architecture.md -->
 <!-- TODO: Periodically Eliora should gather and summarise information through conversation in background "what she knows about you" -->
 <!-- TODO: Users may not feel comfy paying over tele, have a web UI where users can pay, see their goals, reminders and full information -->

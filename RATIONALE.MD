@@ -121,6 +121,40 @@ The user doesn't come back because Eliora has features. They come back because:
 
 ---
 
+## Prompt Caching (Cost Control)
+
+At 1.67 cents per message, LLM cost is the dominant line item. Most of that spend is input tokens — the system prompt (~2,500 tokens), 12 tool definitions (~1,500 tokens), and conversation history are re-sent on every single API call, including tool-use round trips.
+
+Anthropic's prompt caching charges 1.25x on the first write but only 0.1x on subsequent reads within a 5-minute window. For a chatbot where users send messages in bursts, this is essentially free savings.
+
+### Three-layer cache strategy
+
+1. **Tools** — `cache_control` on the last tool definition. Tool schemas are identical across all users and all requests. Every request after the first gets a cache hit here.
+2. **Static system prompt** — `cache_control` on the `BASE_PROMPT` content block. Same ~2,500 tokens for every user. The system prompt is split into two blocks: the static base (cached) and the per-user context (goals, entries, prefs — not cached across users, but cached within a single user's burst).
+3. **Conversation history** — top-level `cache_control` enables automatic caching. As messages grow each turn, the prefix from prior turns is read from cache. Only the new assistant reply + user message are fresh tokens.
+
+### Why split the system prompt
+
+The system prompt was a single string. That meant the per-user data (goals, timezone, entries) at the end invalidated the cache for the static instructions at the beginning. Splitting into `[{ text: BASE_PROMPT, cache_control }, { text: personalized }]` lets the static prefix cache across all users while the per-user block caches within a conversation burst.
+
+### Timestamp in user message, not system prompt
+
+The system prompt originally contained `Current local time for the user: Sunday, April 20, 2026, 14:23`. This changes on every single request, which means it busts the prefix hash for everything after it — including the entire conversation history. Since Anthropic's cache is a prefix cache (hash of all content from position 0 to the breakpoint), one changing byte invalidates everything downstream.
+
+The fix: prepend the timestamp to the user message as `[Sunday, April 20, 2026, 14:23] hey what's up`. The system prompt tells Eliora to look for it in brackets. Now the per-user system block only changes when actual data changes (new goal, new entry, etc.), not every second. The user message is always the last thing in the prefix anyway, so a changing timestamp there doesn't bust anything above it.
+
+### Why 5-minute TTL is fine
+
+The 1-hour TTL costs 2x on writes vs 1.25x for 5-minute. Users chat in bursts — 5-10 messages in a few minutes, then gone. The 5-minute cache refreshes on every hit, so it stays alive through the whole burst. Paying 60% more for the write to cover the edge case of someone coming back 8 minutes later isn't worth it.
+
+### Haiku 4.5 minimum: 4,096 tokens
+
+Haiku 4.5 requires at least 4,096 tokens for caching to activate. Tools (~1,500) + BASE_PROMPT (~2,500) = ~4,000+ tokens, clearing the threshold. If the prompt were shorter, caching would silently fail with no error — both `cache_creation_input_tokens` and `cache_read_input_tokens` would be 0.
+
+**Principle:** Cache what's shared (tools, base prompt) with explicit breakpoints. Cache what grows (conversation) with automatic caching. Don't cache what changes unpredictably (per-user context across different users).
+
+---
+
 ## UX: Simplicity Over Features
 
 ### Conversational /start

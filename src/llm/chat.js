@@ -115,15 +115,15 @@ async function buildSystemPrompt(telegramId, timezone = "UTC") {
     getActivityStreak(telegramId, timezone),
   ]);
 
-  const now = new Date().toLocaleString("en-US", {
-    timeZone: timezone,
-    hour12: false,
-    dateStyle: "full",
-    timeStyle: "short",
-  });
-  let prompt =
-    BASE_PROMPT +
-    `\n\nUser timezone: ${timezone}. Current local time for the user: ${now}. Always convert user-mentioned times to UTC before calling set_reminder.`;
+  const blocks = [
+    {
+      type: "text",
+      text: BASE_PROMPT,
+      cache_control: { type: "ephemeral" },
+    },
+  ];
+
+  let personalized = `User timezone: ${timezone}. The current local time is prepended to each user message in [brackets]. Always convert user-mentioned times to UTC before calling set_reminder.`;
 
   if (goals.length > 0) {
     const goalList = goals
@@ -134,20 +134,20 @@ async function buildSystemPrompt(telegramId, timezone = "UTC") {
         return line;
       })
       .join("\n");
-    prompt += `\n\nThe user's current goals and ambitions:\n${goalList}\nKeep these in mind. Reference their baseline and target when giving accountability feedback. When relevant, check if what they're doing aligns with these goals. Gently call it out if something seems off-track.`;
+    personalized += `\n\nThe user's current goals and ambitions:\n${goalList}\nKeep these in mind. Reference their baseline and target when giving accountability feedback. When relevant, check if what they're doing aligns with these goals. Gently call it out if something seems off-track.`;
   }
 
   if (entries.length > 0) {
     const entryList = entries
       .map((e) => `- [${e.created_at}] (goal: ${e.goal}) ${e.content}`)
       .join("\n");
-    prompt += `\n\nRecent progress entries:\n${entryList}\nUse these to give informed accountability feedback. Notice patterns, celebrate streaks, call out gaps.`;
+    personalized += `\n\nRecent progress entries:\n${entryList}\nUse these to give informed accountability feedback. Notice patterns, celebrate streaks, call out gaps.`;
   }
 
   if (activity.streak > 1) {
-    prompt += `\n\nActivity streak: ${activity.streak} consecutive days with progress entries. Entries logged on ${activity.weekTotal} of the last 7 days.`;
+    personalized += `\n\nActivity streak: ${activity.streak} consecutive days with progress entries. Entries logged on ${activity.weekTotal} of the last 7 days.`;
   } else if (activity.weekTotal > 0) {
-    prompt += `\n\nActivity this week: entries on ${activity.weekTotal} of the last 7 days. No active streak.`;
+    personalized += `\n\nActivity this week: entries on ${activity.weekTotal} of the last 7 days. No active streak.`;
   }
 
   if (reminders.length > 0) {
@@ -157,7 +157,7 @@ async function buildSystemPrompt(telegramId, timezone = "UTC") {
           `- [id:${r.id}] ${r.content} | next: ${r.runAt} | type: ${r.scheduleType} | source: ${r.source}`,
       )
       .join("\n");
-    prompt += `\n\nScheduled reminders and nudges:\n${reminderList}\nAvoid duplicating an existing reminder if one already covers the same intent.`;
+    personalized += `\n\nScheduled reminders and nudges:\n${reminderList}\nAvoid duplicating an existing reminder if one already covers the same intent.`;
   }
 
   if (prefs) {
@@ -167,20 +167,21 @@ async function buildSystemPrompt(telegramId, timezone = "UTC") {
     if (prefs.schedulePref)
       parts.push(`Schedule preferences: ${prefs.schedulePref}`);
     if (parts.length > 0) {
-      prompt += `\n\nUser preferences:\n${parts.join("\n")}`;
+      personalized += `\n\nUser preferences:\n${parts.join("\n")}`;
     }
   }
 
   const nudgeDesc = nudgeSettings.enabled
     ? `Nudges: ON (${nudgeSettings.frequency}), quiet ${nudgeSettings.quietStart}–${nudgeSettings.quietEnd}`
     : "Nudges: OFF (user disabled check-ins)";
-  prompt += `\n\n${nudgeDesc}`;
+  personalized += `\n\n${nudgeDesc}`;
 
   if (summaryRow) {
-    prompt += `\n\nWhat you know about this user (from past conversations):\n${summaryRow.summary}`;
+    personalized += `\n\nWhat you know about this user (from past conversations):\n${summaryRow.summary}`;
   }
 
-  return prompt;
+  blocks.push({ type: "text", text: personalized });
+  return blocks;
 }
 
 /**
@@ -207,9 +208,16 @@ export async function chat(userId, message) {
     getHistory(userId, MAX_HISTORY),
     getUserMeta(userId),
   ]);
-  const systemPrompt = await buildSystemPrompt(userId, timezone);
-
+  const systemBlocks = await buildSystemPrompt(userId, timezone);
   const tierConfig = getTierConfig(tier);
+
+  // Timestamp in user message (not system prompt) to avoid busting cache
+  const now = new Date().toLocaleString("en-US", {
+    timeZone: timezone,
+    hour12: false,
+    dateStyle: "full",
+    timeStyle: "short",
+  });
 
   // Fire-and-forget: push next nudge forward + maybe refresh summary
   const afterChat = () => {
@@ -225,23 +233,29 @@ export async function chat(userId, message) {
   };
 
   let messages = history.map((m) => ({ role: m.role, content: m.content }));
-  messages.push({ role: "user", content: message });
+  messages.push({ role: "user", content: `[${now}] ${message}` });
   let maxSteps = MAX_TOOL_STEPS;
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
+  let totalCacheReadTokens = 0;
+  let totalCacheCreationTokens = 0;
 
   // Loop to handle tool calls
   while (maxSteps > 0) {
     const response = await client.messages.create({
       model: tierConfig.model,
       max_tokens: tierConfig.maxTokens,
-      system: systemPrompt,
+      cache_control: { type: "ephemeral" },
+      system: systemBlocks,
       messages,
       tools: TOOLS,
     });
 
     totalInputTokens += response.usage?.input_tokens || 0;
     totalOutputTokens += response.usage?.output_tokens || 0;
+    totalCacheReadTokens += response.usage?.cache_read_input_tokens || 0;
+    totalCacheCreationTokens +=
+      response.usage?.cache_creation_input_tokens || 0;
 
     // If no tool use, extract text and return
     if (response.stop_reason === "end_turn") {
@@ -253,6 +267,8 @@ export async function chat(userId, message) {
         text,
         inputTokens: totalInputTokens,
         outputTokens: totalOutputTokens,
+        cacheReadTokens: totalCacheReadTokens,
+        cacheCreationTokens: totalCacheCreationTokens,
       };
     }
 
@@ -307,6 +323,8 @@ export async function chat(userId, message) {
       text,
       inputTokens: totalInputTokens,
       outputTokens: totalOutputTokens,
+      cacheReadTokens: totalCacheReadTokens,
+      cacheCreationTokens: totalCacheCreationTokens,
     };
   }
 
@@ -319,5 +337,7 @@ export async function chat(userId, message) {
     text: fallback,
     inputTokens: totalInputTokens,
     outputTokens: totalOutputTokens,
+    cacheReadTokens: totalCacheReadTokens,
+    cacheCreationTokens: totalCacheCreationTokens,
   };
 }
