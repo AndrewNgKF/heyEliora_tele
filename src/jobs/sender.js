@@ -3,6 +3,7 @@ import {
   completeReminder,
   failReminder,
   getDueReminders,
+  updateNudgeSettings,
 } from "../db/queries.js";
 import { getNextRunAt } from "./reminders.js";
 
@@ -47,10 +48,21 @@ export async function processDueMessages(bot) {
       await completeReminder(msg.id, getNextRunAt(msg));
       sent++;
     } catch (error) {
-      await failReminder(
-        msg.id,
-        error instanceof Error ? error.message : String(error),
-      );
+      const errMsg =
+        error instanceof Error ? error.message : String(error);
+
+      // User blocked or deleted the bot — disable nudges to stop wasting LLM tokens
+      const code = error?.error_code || error?.status;
+      if (code === 403) {
+        console.log(
+          `[eliora] user ${msg.telegramId} blocked bot — disabling nudges`,
+        );
+        await updateNudgeSettings(msg.telegramId, { enabled: false }).catch(
+          () => {},
+        );
+      }
+
+      await failReminder(msg.id, errMsg);
       failed++;
     }
   }
