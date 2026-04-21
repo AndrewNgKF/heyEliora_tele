@@ -30,14 +30,12 @@ export const commands = new Composer();
 commands.command("start", async (ctx) => {
   const name = ctx.userName || "there";
 
-  const keyboard = new InlineKeyboard().text(
-    "Not sure yet — tell me more",
-    "action:howto",
-  );
+  const keyboard = new InlineKeyboard().text("Tell me more", "action:howto");
 
   await ctx.replyMd(
-    `Hey ${name}. I'm *Eliora* — I remember what you're working on and I won't let you off the hook.\n\n` +
-      `What's the one thing you're trying to get done this month?`,
+    `Hey ${name}, I'm *Eliora*! \n\n` +
+      `I remember what you're working on, notice patterns and trends, and provide strategic advice!\n\n` +
+      `So let's start here: \n\nWhat's the most pressing thing on your mind right now?`,
     { reply_markup: keyboard },
   );
 });
@@ -326,7 +324,7 @@ commands.command("mydata", async (ctx) => {
   const used = usage.limit - usage.remaining;
 
   let text = `*Everything Eliora knows about ${name}*\n`;
-  text += `_This is all the data stored about you. Nothing hidden._\n`;
+  text += `_This is all the data stored about you._\n`;
 
   // Account
   text += `\n*Account*`;

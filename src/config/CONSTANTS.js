@@ -63,9 +63,8 @@ export const TIMEZONE_OPTIONS = [
 /** Shared howto / capabilities text */
 export const HOWTO_TEXT =
   `*Just talk to me like you would a friend.*\n\n` +
-  `Tell me what you're working on — I'll help you turn it into a clear goal and track your progress automatically.\n\n` +
-  `Ask me to remind you about things, tell me what you got done today, or ask for an honest check-in on how you're doing.\n\n` +
-  `I pick up on your preferences, timezone, and habits as we talk — no setup needed.\n\n` +
+  `Tell me what you're working on — I'll help you turn it into a clear vision and track your progress automatically.\n\n` +
+  `I pick up on your and habits and style as we talk — no setup needed.\n\n` +
   `/ will get you a menu of things I can do` +
   ` \n\n Or just start chatting and we'll figure it out together!`;
 
