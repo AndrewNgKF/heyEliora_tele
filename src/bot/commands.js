@@ -15,6 +15,7 @@ import {
   getUserSummary,
   getNudgeSettings,
   getActivityStreak,
+  saveFeedback,
 } from "../db/queries.js";
 import { TIMEZONE_OPTIONS, HOWTO_TEXT } from "../config/CONSTANTS.js";
 import {
@@ -397,6 +398,50 @@ commands.command("mydata", async (ctx) => {
   text += `\nTo delete everything: /forget`;
 
   await ctx.replyMd(text);
+});
+
+// /feedback — let users send feedback to the team
+commands.command("feedback", async (ctx) => {
+  const text = ctx.message.text.replace(/^\/feedback(@\w+)?/, "").trim();
+
+  if (!text) {
+    await ctx.reply(
+      "Tell me what's on your mind.\n\n" +
+        "Usage: /feedback <your message>\n\n" +
+        "Example: /feedback I love the streak tracking, but I wish I could pause nudges for a few days.",
+    );
+    return;
+  }
+
+  if (text.length > 2000) {
+    await ctx.reply(
+      "That's a lot to chew on \u2014 please keep feedback under 2000 characters.",
+    );
+    return;
+  }
+
+  try {
+    await saveFeedback(ctx.userId, ctx.userName || null, text);
+  } catch (err) {
+    console.error("[eliora] /feedback save error:", err);
+    await ctx.reply("Sorry, couldn't save that. Try again in a moment.");
+    return;
+  }
+
+  // Optional: forward to admin chat if configured
+  const adminChatId = process.env.ADMIN_CHAT_ID;
+  if (adminChatId) {
+    const from = ctx.userName ? `${ctx.userName} (${ctx.userId})` : ctx.userId;
+    ctx.api
+      .sendMessage(adminChatId, `\u{1F4E9} Feedback from ${from}:\n\n${text}`)
+      .catch((err) =>
+        console.error("[eliora] /feedback admin forward error:", err),
+      );
+  }
+
+  await ctx.reply(
+    "Got it \u2014 thank you. Every note is read by the team and shapes what comes next.",
+  );
 });
 
 // --- Free-form text messages (must be last) ---

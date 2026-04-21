@@ -883,3 +883,18 @@ export async function getMessageCount(telegramId) {
   });
   return Number(result.rows[0].count);
 }
+
+// --- Feedback ---
+
+/**
+ * Save a feedback message from a user.
+ * @param {string} telegramId
+ * @param {string|null} name
+ * @param {string} content
+ */
+export async function saveFeedback(telegramId, name, content) {
+  await db.execute({
+    sql: "INSERT INTO feedback (telegram_id, name, content) VALUES (?, ?, ?)",
+    args: [telegramId, name || null, content],
+  });
+}

@@ -303,7 +303,7 @@ describe("usage + trial logic", () => {
     expect(usage.limit).toBe(15);
   });
 
-  it("old free users get regular limit (5/day)", async () => {
+  it("old free users get regular limit (3/day)", async () => {
     // Insert user with old created_at
     await testDb.execute({
       sql: `INSERT INTO users (telegram_id, name, tier, created_at)
@@ -311,7 +311,7 @@ describe("usage + trial logic", () => {
       args: [TG_ID, "OldUser"],
     });
     const usage = await checkUsage(TG_ID);
-    expect(usage.limit).toBe(5);
+    expect(usage.limit).toBe(3);
   });
 });
 

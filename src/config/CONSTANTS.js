@@ -3,24 +3,24 @@
 /** Absolute hard cap per user per day, regardless of tier */
 export const HARD_DAILY_CAP = parseInt(process.env.HARD_DAILY_CAP || "200", 10);
 
-/** Free-tier trial: generous limit for the first N days */
-export const FREE_TRIAL_DAYS = 3;
+/** Free-tier onboarding boost: extra headroom for the first N days */
+export const FREE_TRIAL_DAYS = 7;
 export const FREE_TRIAL_DAILY_LIMIT = 15;
 
 /** @type {Record<string, { dailyLimit: number, model: string, maxTokens: number }>} */
 export const TIERS = {
   free: {
-    dailyLimit: parseInt(process.env.FREE_DAILY_LIMIT || "5", 10),
+    dailyLimit: parseInt(process.env.FREE_DAILY_LIMIT || "3", 10),
     model: process.env.FREE_MODEL || "claude-haiku-4-5-20251001",
     maxTokens: 512,
   },
   lite: {
-    dailyLimit: parseInt(process.env.LITE_DAILY_LIMIT || "30", 10),
+    dailyLimit: parseInt(process.env.LITE_DAILY_LIMIT || "5", 10),
     model: process.env.LITE_MODEL || "claude-haiku-4-5-20251001",
     maxTokens: 1024,
   },
   pro: {
-    dailyLimit: parseInt(process.env.PRO_DAILY_LIMIT || "100", 10),
+    dailyLimit: parseInt(process.env.PRO_DAILY_LIMIT || "15", 10),
     model: process.env.PRO_MODEL || "claude-haiku-4-5-20251001",
     maxTokens: 1024,
   },
@@ -91,5 +91,6 @@ export const COMMANDS = [
   { command: "whatsup", description: "Accountability check-in" },
   { command: "reminders", description: "View active reminders" },
   { command: "mydata", description: "See everything Eliora knows about you" },
+  { command: "feedback", description: "Send feedback to the team" },
   { command: "forget", description: "Clear conversation history" },
 ];

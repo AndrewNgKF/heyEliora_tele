@@ -109,6 +109,15 @@ export async function initDb() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`,
+    // feedback: free-form messages from users via /feedback
+    `CREATE TABLE IF NOT EXISTS feedback (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      telegram_id TEXT NOT NULL,
+      name TEXT,
+      content TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_feedback_user ON feedback(telegram_id, created_at)`,
   ]);
 
   console.log("[eliora] database initialized");
