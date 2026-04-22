@@ -5,3 +5,8 @@
 node_modules/
 bun.lockb
 coverage/
+
+# Markdown notes (keep local, don't commit) — except README
+*.md
+*.MD
+!README.md
