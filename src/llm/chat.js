@@ -50,6 +50,9 @@ When the user reveals work style, tone, or schedule needs — save_preference si
 ## Progress tracking
 - Goal-relevant activity → track_progress silently with the correct goal_id. Positive or negative. Brief factual note. Never log the same activity twice.
 
+## Images
+If the user sends a photo (food, workout screenshot, journal page, etc.), describe what you see concretely in your reply — you only see the image once, so your own description becomes the memory for any follow-up turns. Then coach on it.
+
 ## Nudges
 update_nudge_settings when the user signals frequency:
 - "every day" → daily | "every few days" → every_3_days | "weekly" → weekly
@@ -194,9 +197,11 @@ function extractText(content) {
  * Chat with Eliora
  * @param {string} userId
  * @param {string} message
+ * @param {{ image?: { mediaType: string, data: string } }} [opts]
+ *   image.data is base64-encoded bytes (no data: prefix).
  * @returns {Promise<string>}
  */
-export async function chat(userId, message) {
+export async function chat(userId, message, opts = {}) {
   // Load history + build personalized prompt + get tier config in parallel
   const [history, { tier, timezone }] = await Promise.all([
     getHistory(userId, MAX_HISTORY),
@@ -226,8 +231,29 @@ export async function chat(userId, message) {
       .catch(() => {});
   };
 
+  // Text we persist to history. If an image was sent, mark it so future
+  // turns know there was visual context (bytes themselves are not stored).
+  const persistedUserText = opts.image
+    ? `[image] ${message || ""}`.trim()
+    : message;
+
+  const userTextBlock = `[${now}] ${message || "(see attached image)"}`;
+  const userContent = opts.image
+    ? [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: opts.image.mediaType,
+            data: opts.image.data,
+          },
+        },
+        { type: "text", text: userTextBlock },
+      ]
+    : userTextBlock;
+
   let messages = history.map((m) => ({ role: m.role, content: m.content }));
-  messages.push({ role: "user", content: `[${now}] ${message}` });
+  messages.push({ role: "user", content: userContent });
   let maxSteps = MAX_TOOL_STEPS;
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
@@ -253,7 +279,7 @@ export async function chat(userId, message) {
     // If no tool use, extract text and return
     if (response.stop_reason === "end_turn") {
       const text = extractText(response.content);
-      await saveMessage(userId, "user", message);
+      await saveMessage(userId, "user", persistedUserText);
       await saveMessage(userId, "assistant", text);
       afterChat();
       return {
@@ -309,7 +335,7 @@ export async function chat(userId, message) {
     const text =
       extractText(response.content) ||
       "Hmm, I got a bit lost there. What were we talking about?";
-    await saveMessage(userId, "user", message);
+    await saveMessage(userId, "user", persistedUserText);
     await saveMessage(userId, "assistant", text);
     afterChat();
     return {
@@ -323,7 +349,7 @@ export async function chat(userId, message) {
 
   // If we ran out of steps
   const fallback = "I got stuck in a loop — let's try that again.";
-  await saveMessage(userId, "user", message);
+  await saveMessage(userId, "user", persistedUserText);
   await saveMessage(userId, "assistant", fallback);
   afterChat();
   return {

@@ -444,6 +444,111 @@ commands.command("feedback", async (ctx) => {
 
 // --- Free-form text messages (must be last) ---
 
+// In-memory dedup for media groups (albums). Telegram delivers each photo in
+// an album as its own update within ~1s, sharing a media_group_id. We reply
+// once on the first photo asking the user to send them one at a time, and
+// silently drop the rest. On Vercel serverless this Map lives per-instance;
+// worst case (cold split across instances) the user gets the "send one at a
+// time" reply twice, which is still the correct guidance.
+const seenMediaGroups = new Map(); // media_group_id -> expires_at_ms
+function claimMediaGroup(id) {
+  const now = Date.now();
+  // Sweep stale entries (>10 min old) so the map doesn't leak.
+  for (const [k, exp] of seenMediaGroups) {
+    if (exp < now) seenMediaGroups.delete(k);
+  }
+  if (seenMediaGroups.has(id)) return false;
+  seenMediaGroups.set(id, now + 10 * 60 * 1000);
+  return true;
+}
+
+// /photo — user sends an image (food, workout screenshot, journal page, etc.)
+// We download bytes from Telegram (URL contains the bot token, must not leave
+// our infra), base64-encode, and pass inline to Claude. Image bytes are not
+// persisted anywhere; only the caption + an "[image]" marker are saved to
+// message history so future turns know visual context existed.
+commands.on("message:photo", async (ctx) => {
+  // Albums: we don't process any of the photos. Reply once on the first one
+  // asking the user to send them one at a time, then silently drop the rest.
+  if (ctx.message.media_group_id) {
+    const isFirst = claimMediaGroup(ctx.message.media_group_id);
+    if (!isFirst) return;
+    await ctx.reply(
+      "I can only look at one photo at a time. Send them one by one and tell me what you want me to notice on each.",
+    );
+    return;
+  }
+
+  const usage = await checkUsage(ctx.userId);
+  if (!usage.allowed) {
+    await ctx.reply(
+      `You've hit your daily limit of ${usage.limit} messages. Resets at midnight in your timezone.\n\nWant more? Please Upgrade to a paid plan to increase your limits and support development!`,
+    );
+    return;
+  }
+
+  try {
+    // Telegram includes the same photo at multiple resolutions, ascending.
+    // Last entry is the largest — that's what we want for vision quality.
+    const photos = ctx.message.photo;
+    const largest = photos[photos.length - 1];
+    const file = await ctx.api.getFile(largest.file_id);
+    const url = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${file.file_path}`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Telegram file fetch failed: ${res.status}`);
+    const buffer = Buffer.from(await res.arrayBuffer());
+
+    // Defense in depth: Telegram compresses message:photo client-side to
+    // ~1280px JPEG (typically 150-500 KB), so this should never trigger.
+    // But if someone finds a way around it, fail safely before we burn
+    // tokens or hit Anthropic's 5 MB image cap.
+    const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+    if (buffer.length > MAX_IMAGE_BYTES) {
+      await ctx.reply(
+        "That image is too large for me to read. Try sending a smaller version?",
+      );
+      return;
+    }
+
+    const data = buffer.toString("base64");
+
+    const lower = (file.file_path || "").toLowerCase();
+    const mediaType = lower.endsWith(".png")
+      ? "image/png"
+      : lower.endsWith(".webp")
+        ? "image/webp"
+        : lower.endsWith(".gif")
+          ? "image/gif"
+          : "image/jpeg";
+
+    const caption = ctx.message.caption || "";
+    const {
+      text: reply,
+      inputTokens,
+      outputTokens,
+    } = await chat(ctx.userId, caption, {
+      image: { mediaType, data },
+    });
+    await incrementUsage(ctx.userId, inputTokens, outputTokens);
+    await ctx.replyMd(reply);
+  } catch (err) {
+    console.error("[eliora] image error:", err);
+    await ctx.reply(
+      "Sorry, I couldn't process that image. Try sending it again?",
+    );
+  }
+});
+
+// /document — user sent a file (PDF, video, audio, or an uncompressed image).
+// We don't process these yet. Politely tell them to resend as a photo so it
+// goes through Telegram's compression and our vision pipeline.
+commands.on("message:document", async (ctx) => {
+  await ctx.reply(
+    "I can read images, but only when sent as a photo or screenshot. Try sending it again with the photo button — that way I can take a look.",
+  );
+});
+
 commands.on("message:text", async (ctx) => {
   const usage = await checkUsage(ctx.userId);
   if (!usage.allowed) {
